@@ -1,0 +1,266 @@
+{
+  "PCBA": {
+    "Main PCB": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "stageName": "BLE Stage",
+            "stageID": 1,
+            "passCount": 950,
+            "failCount": 50
+          },
+          {
+            "stageName": "NIC Verification",
+            "stageID": 2,
+            "passCount": 920,
+            "failCount": 80
+          },
+          {
+            "stageName": "Zeal PCB Stage 1",
+            "stageID": 3,
+            "passCount": 880,
+            "failCount": 120
+          },
+          {
+            "stageName": "Zeal PCB Stage 2",
+            "stageID": 4,
+            "passCount": 850,
+            "failCount": 150
+          },
+          {
+            "stageName": "Calibration",
+            "stageID": 5,
+            "passCount": 800,
+            "failCount": 200
+          }
+        ],
+        "GJV95-3P4G": [
+          {
+            "stageName": "SMT Loading",
+            "stageID": 1,
+            "passCount": 1200,
+            "failCount": 80
+          },
+          {
+            "stageName": "Reflow Oven",
+            "stageID": 2,
+            "passCount": 1150,
+            "failCount": 130
+          },
+          {
+            "stageName": "AOI Testing",
+            "stageID": 3,
+            "passCount": 1100,
+            "failCount": 180
+          },
+          {
+            "stageName": "ICT Testing",
+            "stageID": 4,
+            "passCount": 1050,
+            "failCount": 230
+          },
+          {
+            "stageName": "Final Testing",
+            "stageID": 5,
+            "passCount": 1000,
+            "failCount": 280
+          }
+        ]
+      },
+      "RCP 02": {
+        "GJV95-1P4G": [
+          {
+            "stageName": "SMT Loading",
+            "stageID": 1,
+            "passCount": 890,
+            "failCount": 110
+          },
+          {
+            "stageName": "Reflow Oven",
+            "stageID": 2,
+            "passCount": 860,
+            "failCount": 140
+          },
+          {
+            "stageName": "AOI Testing",
+            "stageID": 3,
+            "passCount": 820,
+            "failCount": 180
+          },
+          {
+            "stageName": "ICT Testing",
+            "stageID": 4,
+            "passCount": 780,
+            "failCount": 220
+          },
+          {
+            "stageName": "Final Testing",
+            "stageID": 5,
+            "passCount": 750,
+            "failCount": 250
+          }
+        ]
+      },
+      "RCP 03": {
+        "GJV95-1P4G": [
+          {
+            "stageName": "SMT Loading",
+            "stageID": 1,
+            "passCount": 970,
+            "failCount": 30
+          },
+          {
+            "stageName": "Reflow Oven",
+            "stageID": 2,
+            "passCount": 940,
+            "failCount": 60
+          },
+          {
+            "stageName": "AOI Testing",
+            "stageID": 3,
+            "passCount": 900,
+            "failCount": 100
+          },
+          {
+            "stageName": "ICT Testing",
+            "stageID": 4,
+            "passCount": 870,
+            "failCount": 130
+          },
+          {
+            "stageName": "Final Testing",
+            "stageID": 5,
+            "passCount": 840,
+            "failCount": 160
+          }
+        ]
+      }
+    },
+    "BLE": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "stageName": "Component Placement",
+            "stageID": 1,
+            "passCount": 480,
+            "failCount": 20
+          },
+          {
+            "stageName": "Soldering",
+            "stageID": 2,
+            "passCount": 460,
+            "failCount": 40
+          },
+          {
+            "stageName": "BLE Testing",
+            "stageID": 3,
+            "passCount": 440,
+            "failCount": 60
+          },
+          {
+            "stageName": "Range Testing",
+            "stageID": 4,
+            "passCount": 420,
+            "failCount": 80
+          }
+        ]
+      }
+    },
+    "RF": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "stageName": "RF Assembly",
+            "stageID": 1,
+            "passCount": 290,
+            "failCount": 10
+          },
+          {
+            "stageName": "Frequency Testing",
+            "stageID": 2,
+            "passCount": 280,
+            "failCount": 20
+          },
+          {
+            "stageName": "Signal Testing",
+            "stageID": 3,
+            "passCount": 270,
+            "failCount": 30
+          },
+          {
+            "stageName": "Final RF Test",
+            "stageID": 4,
+            "passCount": 260,
+            "failCount": 40
+          }
+        ]
+      }
+    }
+  },
+  "EMA": {
+    "GJV95-1P4G": [
+      {
+        "stageName": "Assembly Line 1",
+        "stageID": 1,
+        "passCount": 1800,
+        "failCount": 200
+      },
+      {
+        "stageName": "Assembly Line 2",
+        "stageID": 2,
+        "passCount": 1750,
+        "failCount": 250
+      },
+      {
+        "stageName": "Quality Check",
+        "stageID": 3,
+        "passCount": 1700,
+        "failCount": 300
+      },
+      {
+        "stageName": "Final Assembly",
+        "stageID": 4,
+        "passCount": 1650,
+        "failCount": 350
+      },
+      {
+        "stageName": "Packaging",
+        "stageID": 5,
+        "passCount": 1600,
+        "failCount": 400
+      }
+    ],
+    "GJV95-3P4G": [
+      {
+        "stageName": "Assembly Line 1",
+        "stageID": 1,
+        "passCount": 2200,
+        "failCount": 300
+      },
+      {
+        "stageName": "Assembly Line 2",
+        "stageID": 2,
+        "passCount": 2150,
+        "failCount": 350
+      },
+      {
+        "stageName": "Quality Check",
+        "stageID": 3,
+        "passCount": 2100,
+        "failCount": 400
+      },
+      {
+        "stageName": "Final Assembly",
+        "stageID": 4,
+        "passCount": 2050,
+        "failCount": 450
+      },
+      {
+        "stageName": "Packaging",
+        "stageID": 5,
+        "passCount": 2000,
+        "failCount": 500
+      }
+    ]
+  }
+}

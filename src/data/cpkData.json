@@ -1,0 +1,304 @@
+{
+  "PCBA": {
+    "Main PCB": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "parameterName": "PPM Value",
+            "cpkValue": 1.85,
+            "metercount": 1000,
+            "lowerLimit": -2.5,
+            "upperLimit": 2.5
+          },
+          {
+            "parameterName": "Sup On",
+            "cpkValue": 1.42,
+            "metercount": 1000,
+            "lowerLimit": -3.0,
+            "upperLimit": 3.0
+          },
+          {
+            "parameterName": "Sup Off",
+            "cpkValue": 2.15,
+            "metercount": 1000,
+            "lowerLimit": -1.5,
+            "upperLimit": 1.5
+          },
+          {
+            "parameterName": "Bat On",
+            "cpkValue": 1.78,
+            "metercount": 1000,
+            "lowerLimit": -0.5,
+            "upperLimit": 0.5
+          },
+          {
+            "parameterName": "Stage-1 TP 1",
+            "cpkValue": 1.33,
+            "metercount": 1000,
+            "lowerLimit": -10.0,
+            "upperLimit": 10.0
+          }
+        ],
+        "GJV95-3P4G": [
+          {
+            "parameterName": "Voltage Accuracy",
+            "cpkValue": 1.95,
+            "metercount": 1280,
+            "lowerLimit": -2.5,
+            "upperLimit": 2.5
+          },
+          {
+            "parameterName": "Current Accuracy",
+            "cpkValue": 1.52,
+            "metercount": 1280,
+            "lowerLimit": -3.0,
+            "upperLimit": 3.0
+          },
+          {
+            "parameterName": "Power Factor",
+            "cpkValue": 2.25,
+            "metercount": 1280,
+            "lowerLimit": -1.5,
+            "upperLimit": 1.5
+          },
+          {
+            "parameterName": "Frequency Stability",
+            "cpkValue": 1.88,
+            "metercount": 1280,
+            "lowerLimit": -0.5,
+            "upperLimit": 0.5
+          },
+          {
+            "parameterName": "Temperature Drift",
+            "cpkValue": 1.43,
+            "metercount": 1280,
+            "lowerLimit": -10.0,
+            "upperLimit": 10.0
+          }
+        ]
+      },
+      "RCP 02": {
+        "GJV95-1P4G": [
+          {
+            "parameterName": "Voltage Accuracy",
+            "cpkValue": 1.65,
+            "metercount": 1000,
+            "lowerLimit": -2.5,
+            "upperLimit": 2.5
+          },
+          {
+            "parameterName": "Current Accuracy",
+            "cpkValue": 1.22,
+            "metercount": 1000,
+            "lowerLimit": -3.0,
+            "upperLimit": 3.0
+          },
+          {
+            "parameterName": "Power Factor",
+            "cpkValue": 1.95,
+            "metercount": 1000,
+            "lowerLimit": -1.5,
+            "upperLimit": 1.5
+          },
+          {
+            "parameterName": "Frequency Stability",
+            "cpkValue": 1.58,
+            "metercount": 1000,
+            "lowerLimit": -0.5,
+            "upperLimit": 0.5
+          },
+          {
+            "parameterName": "Temperature Drift",
+            "cpkValue": 1.13,
+            "metercount": 1000,
+            "lowerLimit": -10.0,
+            "upperLimit": 10.0
+          }
+        ]
+      },
+      "RCP 03": {
+        "GJV95-1P4G": [
+          {
+            "parameterName": "Voltage Accuracy",
+            "cpkValue": 2.05,
+            "metercount": 1000,
+            "lowerLimit": -2.5,
+            "upperLimit": 2.5
+          },
+          {
+            "parameterName": "Current Accuracy",
+            "cpkValue": 1.62,
+            "metercount": 1000,
+            "lowerLimit": -3.0,
+            "upperLimit": 3.0
+          },
+          {
+            "parameterName": "Power Factor",
+            "cpkValue": 2.35,
+            "metercount": 1000,
+            "lowerLimit": -1.5,
+            "upperLimit": 1.5
+          },
+          {
+            "parameterName": "Frequency Stability",
+            "cpkValue": 1.98,
+            "metercount": 1000,
+            "lowerLimit": -0.5,
+            "upperLimit": 0.5
+          },
+          {
+            "parameterName": "Temperature Drift",
+            "cpkValue": 1.53,
+            "metercount": 1000,
+            "lowerLimit": -10.0,
+            "upperLimit": 10.0
+          }
+        ]
+      }
+    },
+    "BLE": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "parameterName": "Signal Strength",
+            "cpkValue": 1.75,
+            "metercount": 500,
+            "lowerLimit": -80.0,
+            "upperLimit": -20.0
+          },
+          {
+            "parameterName": "Connection Stability",
+            "cpkValue": 1.45,
+            "metercount": 500,
+            "lowerLimit": 0.0,
+            "upperLimit": 100.0
+          },
+          {
+            "parameterName": "Power Consumption",
+            "cpkValue": 1.85,
+            "metercount": 500,
+            "lowerLimit": 0.0,
+            "upperLimit": 50.0
+          },
+          {
+            "parameterName": "Range Test",
+            "cpkValue": 1.55,
+            "metercount": 500,
+            "lowerLimit": 0.0,
+            "upperLimit": 100.0
+          }
+        ]
+      }
+    },
+    "RF": {
+      "RCP 01": {
+        "GJV95-1P4G": [
+          {
+            "parameterName": "Frequency Accuracy",
+            "cpkValue": 2.25,
+            "metercount": 300,
+            "lowerLimit": -100.0,
+            "upperLimit": 100.0
+          },
+          {
+            "parameterName": "Signal Quality",
+            "cpkValue": 1.95,
+            "metercount": 300,
+            "lowerLimit": -40.0,
+            "upperLimit": 10.0
+          },
+          {
+            "parameterName": "Impedance Match",
+            "cpkValue": 1.75,
+            "metercount": 300,
+            "lowerLimit": 45.0,
+            "upperLimit": 55.0
+          },
+          {
+            "parameterName": "Harmonic Distortion",
+            "cpkValue": 1.65,
+            "metercount": 300,
+            "lowerLimit": -60.0,
+            "upperLimit": -20.0
+          }
+        ]
+      }
+    }
+  },
+  "EMA": {
+    "GJV95-1P4G": [
+      {
+        "parameterName": "Assembly Tolerance",
+        "cpkValue": 1.55,
+        "metercount": 2000,
+        "lowerLimit": -0.5,
+        "upperLimit": 0.5
+      },
+      {
+        "parameterName": "Weight Variation",
+        "cpkValue": 1.35,
+        "metercount": 2000,
+        "lowerLimit": -50.0,
+        "upperLimit": 50.0
+      },
+      {
+        "parameterName": "Sealing Quality",
+        "cpkValue": 1.85,
+        "metercount": 2000,
+        "lowerLimit": 0.0,
+        "upperLimit": 100.0
+      },
+      {
+        "parameterName": "Dimension Check",
+        "cpkValue": 1.75,
+        "metercount": 2000,
+        "lowerLimit": -2.0,
+        "upperLimit": 2.0
+      },
+      {
+        "parameterName": "Surface Quality",
+        "cpkValue": 1.65,
+        "metercount": 2000,
+        "lowerLimit": 0.0,
+        "upperLimit": 100.0
+      }
+    ],
+    "GJV95-3P4G": [
+      {
+        "parameterName": "Assembly Tolerance",
+        "cpkValue": 1.75,
+        "metercount": 2500,
+        "lowerLimit": -0.5,
+        "upperLimit": 0.5
+      },
+      {
+        "parameterName": "Weight Variation",
+        "cpkValue": 1.55,
+        "metercount": 2500,
+        "lowerLimit": -50.0,
+        "upperLimit": 50.0
+      },
+      {
+        "parameterName": "Sealing Quality",
+        "cpkValue": 2.05,
+        "metercount": 2500,
+        "lowerLimit": 0.0,
+        "upperLimit": 100.0
+      },
+      {
+        "parameterName": "Dimension Check",
+        "cpkValue": 1.95,
+        "metercount": 2500,
+        "lowerLimit": -2.0,
+        "upperLimit": 2.0
+      },
+      {
+        "parameterName": "Surface Quality",
+        "cpkValue": 1.85,
+        "metercount": 2500,
+        "lowerLimit": 0.0,
+        "upperLimit": 100.0
+      }
+    ]
+  }
+}
