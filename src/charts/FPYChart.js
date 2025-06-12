@@ -32,7 +32,7 @@ const FPYChart = ({ data }) => { // ✅ Receive data as props
 
   const optionsMain = {
     chart: { type: 'column' },
-    title: { align: 'left', text: 'First Pass Yield.' },
+    title: { align: 'left', text: 'FPY Chart' },
     subtitle: { align: 'left', text: 'Click the columns to view pareto graph.' },
     xAxis: { type: 'category' },
     yAxis: { title: { text: 'Total pass meters %' } },

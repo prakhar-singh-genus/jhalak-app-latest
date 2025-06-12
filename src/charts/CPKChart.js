@@ -55,7 +55,7 @@ const CPKChart = ({ data, cpkList }) => { // ✅ Receive data as props
       type: 'bar',
     },
     title: {
-      text: 'Project CPK Values',
+      text: 'CPK Chart',
       align: 'left',
     },
     subtitle: {
