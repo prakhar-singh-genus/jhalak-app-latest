@@ -1,12 +1,11 @@
-// src/services/apiService.js
-const API_BASE_URL = 'https://localhost:5001/swagger/index.html';
+import config, { baseUrl } from "../config";
 
 // API Service Functions
 export const apiService = {
   // Setting APIs
   getProjectList: async (serverID) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Setting/ProjectList?serverID=${serverID}`);
+      const response = await fetch(`${baseUrl}/Setting/ProjectList?serverID=${serverID}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -19,7 +18,7 @@ export const apiService = {
 
   getLiveProjectList: async (serverID) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Setting/LiveProjectList?serverID=${serverID}`);
+      const response = await fetch(`${baseUrl}/Setting/LiveProjectList?serverID=${serverID}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -32,7 +31,7 @@ export const apiService = {
 
   getProjectDetails: async (projCode, serverID) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Setting/ProjectDetails?projCode=${projCode}&serverID=${serverID}`);
+      const response = await fetch(`${baseUrl}/Setting/ProjectDetails?projCode=${projCode}&serverID=${serverID}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -45,7 +44,7 @@ export const apiService = {
 
   saveConfig: async (plantCode, projectCode) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Setting/SaveConfig`, {
+      const response = await fetch(`${baseUrl}/Setting/SaveConfig`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plantCode, projectCode })
@@ -63,7 +62,7 @@ export const apiService = {
   // FPY APIs
   getFPYData: async (projectData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Fpy/GetFPYs`, {
+      const response = await fetch(`${baseUrl}/Fpy/GetFPYs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(projectData)
@@ -80,7 +79,7 @@ export const apiService = {
 
   getParetoData: async (projectData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Fpy/GetParetoData`, {
+      const response = await fetch(`${baseUrl}/Fpy/GetParetoData`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(projectData)
@@ -97,7 +96,7 @@ export const apiService = {
 
   getCPKData: async (cpkData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Fpy/GetCPKData`, {
+      const response = await fetch(`${baseUrl}/Fpy/GetCPKData`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cpkData)
@@ -114,7 +113,7 @@ export const apiService = {
 
   calculateCPK: async (cpkData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Fpy/CalculateCPK`, {
+      const response = await fetch(`${baseUrl}/Fpy/CalculateCPK`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cpkData)
@@ -131,7 +130,7 @@ export const apiService = {
 
   getScatteredData: async (cpkData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/Fpy/GetScatterred`, {
+      const response = await fetch(`${baseUrl}/Fpy/GetScatterred`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cpkData)
@@ -204,110 +203,3 @@ export const getServerName = (serverId) => {
 export const validateApiResponse = (response) => {
   return response && Array.isArray(response) && response.length > 0;
 };
-
-// // src/services/apiService.js
-// const API_BASE_URL = 'https://localhost:5001/api';
-
-// // API Service Functions
-// export const apiService = {
-//   // Setting APIs
-//   getProjectList: async (serverID) => {
-//     const response = await fetch(`${API_BASE_URL}/Setting/ProjectList?serverID=${serverID}`);
-//     return response.json();
-//   },
-
-//   getLiveProjectList: async (serverID) => {
-//     const response = await fetch(`${API_BASE_URL}/Setting/LiveProjectList?serverID=${serverID}`);
-//     return response.json();
-//   },
-
-//   getProjectDetails: async (projCode, serverID) => {
-//     const response = await fetch(`${API_BASE_URL}/Setting/ProjectDetails?projCode=${projCode}&serverID=${serverID}`);
-//     return response.json();
-//   },
-
-//   saveConfig: async (plantCode, projectCode) => {
-//     const response = await fetch(`${API_BASE_URL}/Setting/SaveConfig`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ plantCode, projectCode })
-//     });
-//     return response.json();
-//   },
-
-//   // FPY APIs
-//   getFPYData: async (projectData) => {
-//     const response = await fetch(`${API_BASE_URL}/Fpy/GetFPYs`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(projectData)
-//     });
-//     return response.json();
-//   },
-
-//   getParetoData: async (projectData) => {
-//     const response = await fetch(`${API_BASE_URL}/Fpy/GetParetoData`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(projectData)
-//     });
-//     return response.json();
-//   },
-
-//   getCPKData: async (cpkData) => {
-//     const response = await fetch(`${API_BASE_URL}/Fpy/GetCPKData`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(cpkData)
-//     });
-//     return response.json();
-//   },
-
-//   calculateCPK: async (cpkData) => {
-//     const response = await fetch(`${API_BASE_URL}/Fpy/CalculateCPK`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(cpkData)
-//     });
-//     return response.json();
-//   },
-
-//   getScatteredData: async (cpkData) => {
-//     const response = await fetch(`${API_BASE_URL}/Fpy/GetScatterred`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(cpkData)
-//     });
-//     return response.json();
-//   }
-// };
-
-// // Server configurations
-// export const SERVER_CONFIG = {
-//   1: 'RND',
-//   2: 'RCP', 
-//   3: 'HDR1',
-//   4: 'HDR2',
-//   5: 'HDR3',
-//   6: 'Assam'
-// };
-
-// // Default project data structure  
-// export const createProjectData = (serverID, projCode, stage, startDate, endDate, option = 1) => ({
-//   serverID,
-//   projCode, 
-//   stage,
-//   startDate,
-//   endDate,
-//   Option: option
-// });
-
-// // Default CPK data structure
-// export const createCPKData = (serverID, projCode, startDate, endDate, paramName, option = 1) => ({
-//   serverID,
-//   projCode,
-//   startDate, 
-//   endDate,
-//   paramName,
-//   Option: option
-// });
