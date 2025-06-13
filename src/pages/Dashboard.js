@@ -30,18 +30,19 @@ const Dashboard = () => {
   const [selectedServer, setSelectedServer] = useState(2); // Default RCP
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
+  const [projectsLoading, setProjectsLoading] = useState(false); // Add loading state for projects
 
   // Ref for auto-scrolling to results
   const resultsRef = useRef(null);
 
-  // Server info mapping (same as in Configuration component)
+  // Server info mapping with actual server IPs
   const ServerInfo = [
-    { id: 1, name: 'Genus RND - 192.10.10.4' },
-    { id: 2, name: 'RCP Jaipur - 10.141.61.40' },
-    { id: 3, name: 'HDR 1101 - 10.133.100.21' },
-    { id: 4, name: 'HDR 1100 - 10.134.1.21' },
-    { id: 5, name: 'HDR 1201 - 10.133.1.22' },
-    { id: 6, name: 'Guhawati - 10.161.1.22' },
+    { id: 1, name: 'Genus RND - 192.10.10.4', serverIP: '192.10.10.4' },
+    { id: 2, name: 'RCP Jaipur - 10.141.61.40', serverIP: '10.141.61.40' },
+    { id: 3, name: 'HDR 1101 - 10.133.100.21', serverIP: '10.133.100.21' },
+    { id: 4, name: 'HDR 1100 - 10.134.1.21', serverIP: '10.134.1.21' },
+    { id: 5, name: 'HDR 1201 - 10.133.1.22', serverIP: '10.133.1.22' },
+    { id: 6, name: 'Guhawati - 10.161.1.22', serverIP: '10.161.1.22' },
   ];
 
   // Load server configuration from localStorage on component mount
@@ -60,19 +61,46 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Add useEffect to load projects
+  // FIXED useEffect to load projects - corrected API parameter
   useEffect(() => {
     const loadProjects = async () => {
-      try {
-        const projectList = await apiService.getLiveProjectList(selectedServer);
-        setProjects(projectList);
-      } catch (error) {
-        console.error('Error loading projects:', error);
+      // Only load projects when view mode is 'projectwise'
+      if (formData.viewMode === 'projectwise') {
+        setProjectsLoading(true);
+        try {
+          // Get the server IP from ServerInfo
+          const serverInfo = ServerInfo.find(server => server.id === selectedServer);
+          const serverIP = serverInfo ? serverInfo.serverIP : '10.141.61.40'; // fallback
+          
+          console.log('Loading projects for server IP:', serverIP);
+          
+          // FIXED: Pass serverIP directly instead of serverId
+          const projectList = await apiService.getProjectList(serverIP);
+          console.log('Projects loaded:', projectList);
+          
+          if (projectList && Array.isArray(projectList) && projectList.length > 0) {
+            setProjects(projectList);
+          } else {
+            console.warn('No projects found or invalid response');
+            setProjects([]);
+          }
+        } catch (error) {
+          console.error('Error loading projects:', error);
+          setProjects([]);
+        } finally {
+          setProjectsLoading(false);
+        }
+      } else {
+        // Clear projects when in linewise mode
         setProjects([]);
+        setSelectedProject('');
+        setFormData(prev => ({ ...prev, project: '' }));
+        setProjectsLoading(false);
       }
     };
+    
     loadProjects();
-  }, [selectedServer]);
+  }, [selectedServer, formData.viewMode]); // Dependencies remain the same
 
   // Auto-scroll to results when they become visible
   useEffect(() => {
@@ -238,9 +266,13 @@ const Dashboard = () => {
     setFormData(prev => ({
       ...prev,
       viewMode: mode,
-      // Reset Line No when switching to project-wise view
-      ...(mode === 'projectwise' && { lineNo: '' })
+      // Reset Line No and Project when switching modes
+      ...(mode === 'projectwise' && { lineNo: '' }),
+      ...(mode === 'linewise' && { project: '' })
     }));
+    
+    // Reset selected project when switching modes
+    setSelectedProject('');
     
     // Hide results when view mode changes
     setShowResults(false);
@@ -286,8 +318,8 @@ const Dashboard = () => {
       return false;
     }
     
-    if (!formData.project) {
-      alert('Please select a Project');
+    if (formData.viewMode === 'projectwise' && !formData.project) {
+      alert('Please select a Project for Project Wise view');
       return false;
     }
 
@@ -470,21 +502,36 @@ const Dashboard = () => {
               </div>
             )}
 
-            <div className="form-group">
-              <label>Select Project <span style={{color: 'red'}}>*</span></label>
-              <select 
-                name="project"
-                value={selectedProject}
-                onChange={handleProjectChange}
-                className="select-input"
-                required
-              >
-                <option value="">Select Project</option>
-                {projects.map(p => (
-                  <option key={p.ProjId} value={p.ProjCode}>{p.ProjCode}</option>
-                ))}
-              </select>
-            </div>
+            {formData.viewMode === 'projectwise' && (
+              <div className="form-group">
+                <label>Select Project <span style={{color: 'red'}}>*</span></label>
+                <select 
+                  name="project"
+                  value={selectedProject}
+                  onChange={handleProjectChange}
+                  className="select-input"
+                  required
+                  disabled={projectsLoading}
+                >
+                  <option value="">
+                    {projectsLoading ? 'Loading projects...' : 'Select Project'}
+                  </option>
+                  {projects.map(project => (
+                    <option 
+                      key={project.projId || project.ProjId} 
+                      value={project.projCode || project.ProjCode}
+                    >
+                      {project.projCode || project.ProjCode}
+                    </option>
+                  ))}
+                </select>
+                {projectsLoading && (
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    Loading project list...
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="form-actions">
