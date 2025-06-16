@@ -219,35 +219,63 @@ useEffect(() => {
 
   // Function to get FPY data from API
   const GetFPYDatas = async (option) => {
-    try {
-      const projectData = createProjectData({
-        serverId: selectedServer,
-        area: formData.area,
-        pcbaType: formData.pcbaType,
-        lineNo: formData.lineNo,
-        project: formData.project,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        viewMode: formData.viewMode
-      });
-      
-      const data = await apiService.getFPYData(projectData);
-      
-      if (data && data.length > 0) {
-        setFpyData(data);
-        console.log('FPY Data loaded:', data);
-      } else {
-        console.log('No FPY data found for current selection');
-        setFpyData([]);
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error loading FPY data:', error);
+  try {
+    const projectData = {
+      serverID: selectedServer,
+      projCode: formData.project,
+      stage: formData.stage || 0,                     // default if missing
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      Option: option || formData.viewMode || 0        // prefer `option` param, fallback to formData
+    };
+
+    const data = await apiService.getFPYData(projectData);
+
+    if (data && data.length > 0) {
+      setFpyData(data);
+      console.log('FPY Data loaded:', data);
+    } else {
+      console.log('No FPY data found for current selection');
       setFpyData([]);
-      return null;
     }
-  };
+
+    return data;
+  } catch (error) {
+    console.error('Error loading FPY data:', error);
+    setFpyData([]);
+    return null;
+  }
+};
+  // const GetFPYDatas = async (option) => {
+  //   try {
+  //     const projectData = createProjectData({
+  //       serverId: selectedServer,
+  //       area: formData.area,
+  //       pcbaType: formData.pcbaType,
+  //       lineNo: formData.lineNo,
+  //       project: formData.project,
+  //       startDate: formData.startDate,
+  //       endDate: formData.endDate,
+  //       viewMode: formData.viewMode
+  //     });
+      
+  //     const data = await apiService.getFPYData(projectData);
+      
+  //     if (data && data.length > 0) {
+  //       setFpyData(data);
+  //       console.log('FPY Data loaded:', data);
+  //     } else {
+  //       console.log('No FPY data found for current selection');
+  //       setFpyData([]);
+  //     }
+      
+  //     return data;
+  //   } catch (error) {
+  //     console.error('Error loading FPY data:', error);
+  //     setFpyData([]);
+  //     return null;
+  //   }
+  // };
 
   // Function to get CPK data from API
   const GetCPKData = async () => {
