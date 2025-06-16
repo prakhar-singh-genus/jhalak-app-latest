@@ -1,205 +1,169 @@
 import config, { baseUrl } from "../config";
 
+// Common constants
+const HEADERS = { 'Content-Type': 'application/json' };
+
+// API endpoints
+const ENDPOINTS = {
+  SETTING: {
+    // PROJECT_LIST: '/Setting/ProjectList',
+    PROJECT_LIST: '/Setting/LiveProjectList',
+    LIVE_PROJECT_LIST: '/Setting/LiveProjectList',
+    PROJECT_DETAILS: '/Setting/ProjectDetails',
+    SAVE_CONFIG: '/Setting/SaveConfig'
+  },
+  FPY: {
+    GET_FPYS: '/Fpy/GetFPYs',
+    GET_PARETO: '/Fpy/GetParetoData',
+    GET_CPK: '/Fpy/GetCPKData',
+    CALCULATE_CPK: '/Fpy/CalculateCPK',
+    GET_SCATTERED: '/Fpy/GetScatterred'
+  }
+};
+
+// Helper: centralized fetch handler
+const fetchData = async (url, options = {}, fallback = null) => {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    // Only log in development to avoid console spam in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Error fetching ${url}:`, error);
+    }
+    return fallback;
+  }
+};
+
+// Helper: query string builder
+const buildQueryString = (params) => {
+  // Filter out null/undefined values
+  const filtered = Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value != null)
+  );
+  return new URLSearchParams(filtered).toString();
+};
+
+// Helper: build full URL
+const buildUrl = (endpoint, params = null) => {
+  const url = `${baseUrl}${endpoint}`;
+  return params ? `${url}?${buildQueryString(params)}` : url;
+};
+
 // API Service Functions
 export const apiService = {
   // Setting APIs
-  getProjectList: async (serverID) => {
-    try {
-      const response = await fetch(`${baseUrl}/Setting/ProjectList?serverID=${serverID}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching project list:', error);
-      return [];
-    }
-  },
+  getProjectList: (serverID) =>
+    fetchData(buildUrl(ENDPOINTS.SETTING.PROJECT_LIST, { serverID })),
 
-  getLiveProjectList: async (serverID) => {
-    try {
-      const response = await fetch(`${baseUrl}/Setting/LiveProjectList?serverID=${serverID}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching live project list:', error);
-      return [];
-    }
-  },
+  getLiveProjectList: (serverID) =>
+    fetchData(buildUrl(ENDPOINTS.SETTING.LIVE_PROJECT_LIST, { serverID })),
 
-  getProjectDetails: async (projCode, serverID) => {
-    try {
-      const response = await fetch(`${baseUrl}/Setting/ProjectDetails?projCode=${projCode}&serverID=${serverID}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching project details:', error);
-      return null;
-    }
-  },
+  getProjectDetails: (projCode, serverID) =>
+    fetchData(buildUrl(ENDPOINTS.SETTING.PROJECT_DETAILS, { projCode, serverID }), {}, null),
 
-  saveConfig: async (plantCode, projectCode) => {
-    try {
-      const response = await fetch(`${baseUrl}/Setting/SaveConfig`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plantCode, projectCode })
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error saving config:', error);
-      return null;
-    }
-  },
+  saveConfig: (plantCode, projectCode) =>
+    fetchData(buildUrl(ENDPOINTS.SETTING.SAVE_CONFIG), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({ plantCode, projectCode })
+    }, null),
 
   // FPY APIs
-  getFPYData: async (projectData) => {
-    try {
-      const response = await fetch(`${baseUrl}/Fpy/GetFPYs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching FPY data:', error);
-      return [];
-    }
-  },
+  getFPYData: (projectData) =>
+    fetchData(buildUrl(ENDPOINTS.FPY.GET_FPYS), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(projectData)
+    }),
 
-  getParetoData: async (projectData) => {
-    try {
-      const response = await fetch(`${baseUrl}/Fpy/GetParetoData`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching Pareto data:', error);
-      return [];
-    }
-  },
+  getParetoData: (projectData) =>
+    fetchData(buildUrl(ENDPOINTS.FPY.GET_PARETO), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(projectData)
+    }),
 
-  getCPKData: async (cpkData) => {
-    try {
-      const response = await fetch(`${baseUrl}/Fpy/GetCPKData`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cpkData)
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching CPK data:', error);
-      return [];
-    }
-  },
+  getCPKData: (cpkData) =>
+    fetchData(buildUrl(ENDPOINTS.FPY.GET_CPK), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(cpkData)
+    }),
 
-  calculateCPK: async (cpkData) => {
-    try {
-      const response = await fetch(`${baseUrl}/Fpy/CalculateCPK`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cpkData)
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error calculating CPK:', error);
-      return null;
-    }
-  },
+  calculateCPK: (cpkData) =>
+    fetchData(buildUrl(ENDPOINTS.FPY.CALCULATE_CPK), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(cpkData)
+    }, null),
 
-  getScatteredData: async (cpkData) => {
-    try {
-      const response = await fetch(`${baseUrl}/Fpy/GetScatterred`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cpkData)
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching scattered data:', error);
-      return [];
-    }
-  }
+  getScatteredData: (cpkData) =>
+    fetchData(buildUrl(ENDPOINTS.FPY.GET_SCATTERED), {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify(cpkData)
+    })
 };
 
 // Server configurations
 export const SERVER_CONFIG = {
   1: 'RND',
-  2: 'RCP', 
+  2: 'RCP',
   3: 'HDR1',
   4: 'HDR2',
   5: 'HDR3',
   6: 'Assam'
 };
 
-// Updated project data structure to match Dashboard usage
-export const createProjectData = (formData) => {
+// Data structure creators
+export const createProjectData = (formData, option = 1) => {
   const { serverId, area, pcbaType, lineNo, project, startDate, endDate, viewMode } = formData;
   
   // Determine stage based on area and pcbaType
-  let stage = area; // Default to area
-  if (area === 'PCBA' && pcbaType) {
-    stage = pcbaType; // Use pcbaType for PCBA area
-  }
+  const stage = (area === 'PCBA' && pcbaType) ? pcbaType : area;
   
   return {
     serverID: serverId,
     projCode: project,
-    stage: stage,
-    startDate: startDate,
-    endDate: endDate,
-    lineNo: viewMode === 'linewise' ? lineNo : null, // Include lineNo only for linewise
-    viewMode: viewMode,
-    Option: 1
+    stage,
+    startDate,
+    endDate,
+    lineNo: viewMode === 'linewise' ? lineNo : null,
+    viewMode,
+    Option: option
   };
 };
 
-// Updated CPK data structure to match Dashboard usage
-export const createCPKData = (formData, paramName = null) => {
+export const createCPKData = (formData, paramName = null, option = 1) => {
   const { serverId, project, startDate, endDate, lineNo, viewMode } = formData;
   
   return {
     serverID: serverId,
     projCode: project,
-    startDate: startDate,
-    endDate: endDate,
+    startDate,
+    endDate,
     lineNo: viewMode === 'linewise' ? lineNo : null,
-    paramName: paramName,
-    viewMode: viewMode,
-    Option: 1
+    paramName,
+    viewMode,
+    Option: option
   };
 };
 
-// Helper function to get server name by ID
-export const getServerName = (serverId) => {
-  return SERVER_CONFIG[serverId] || 'Unknown';
-};
+// Utility functions
+export const getServerName = (serverId) =>
+  SERVER_CONFIG[serverId] || 'Unknown';
 
-// Helper function to validate API response
-export const validateApiResponse = (response) => {
-  return response && Array.isArray(response) && response.length > 0;
+export const validateApiResponse = (response) =>
+  Array.isArray(response) && response.length > 0;
+
+// Export for testing or debugging
+export const __internal__ = {
+  fetchData,
+  buildQueryString,
+  buildUrl,
+  ENDPOINTS
 };

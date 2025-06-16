@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Dashboard.css';
 import FPYChart from '../charts/FPYChart';
 import CPKChart from '../charts/CPKChart';
@@ -31,6 +31,8 @@ const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
   const [projectsLoading, setProjectsLoading] = useState(false); // Add loading state for projects
+  const [projectsError, setProjectsError] = useState(''); // Add error state for projects
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   // Ref for auto-scrolling to results
   const resultsRef = useRef(null);
@@ -61,46 +63,118 @@ const Dashboard = () => {
     }
   }, []);
 
-  // FIXED useEffect to load projects - corrected API parameter
-  useEffect(() => {
-    const loadProjects = async () => {
-      // Only load projects when view mode is 'projectwise'
-      if (formData.viewMode === 'projectwise') {
-        setProjectsLoading(true);
-        try {
-          // Get the server IP from ServerInfo
-          const serverInfo = ServerInfo.find(server => server.id === selectedServer);
-          const serverIP = serverInfo ? serverInfo.serverIP : '10.141.61.40'; // fallback
-          
-          console.log('Loading projects for server IP:', serverIP);
-          
-          // FIXED: Pass serverIP directly instead of serverId
-          const projectList = await apiService.getProjectList(serverIP);
-          console.log('Projects loaded:', projectList);
-          
-          if (projectList && Array.isArray(projectList) && projectList.length > 0) {
+  // Retry function (triggers reload via reloadTrigger)
+  const retryLoadProjects = useCallback(() => {
+    if (formData.viewMode === 'projectwise') {
+      setProjectsError('');
+      setProjectsLoading(true);
+      setReloadTrigger(prev => prev + 1);
+    }
+  }, [formData.viewMode]);
+
+// FIXED: Load projects with proper cleanup and timeout handling
+useEffect(() => {
+  let isCancelled = false;
+  let timeoutId = null;
+
+  const loadProjects = async () => {
+    if (formData.viewMode === 'projectwise') {
+      setProjectsLoading(true);
+
+      try {
+        const serverInfo = ServerInfo.find(server => server.id === selectedServer);
+        const serverIP = serverInfo ? serverInfo.serverIP : '10.141.61.40';
+
+        console.log('Loading projects for server IP:', serverIP);
+
+        const controller = new AbortController();
+        
+        // Set timeout for the API call
+        timeoutId = setTimeout(() => {
+          controller.abort();
+          console.warn('Project loading request timed out');
+        }, 10000); // 10s timeout
+
+        const projectList = await apiService.getProjectList(serverIP, controller.signal);
+
+        // Clear timeout if request completes successfully
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        if (!isCancelled) {
+          if (Array.isArray(projectList) && projectList.length > 0) {
             setProjects(projectList);
+            setProjectsError('');
+            // Only show results if we're in projectwise mode and have projects
+            setShowResults(true);
           } else {
-            console.warn('No projects found or invalid response');
             setProjects([]);
+            setProjectsError('No projects found for this server');
+            setShowResults(false);
           }
-        } catch (error) {
+        }
+      } catch (error) {
+        // Clear timeout on error
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        if (!isCancelled) {
           console.error('Error loading projects:', error);
           setProjects([]);
-        } finally {
+          setShowResults(false);
+
+          if (error.name === 'AbortError') {
+            setProjectsError('Request timed out. Please try again.');
+          } else {
+            setProjectsError('Failed to load projects. Please try again.');
+          }
+        }
+      } finally {
+        if (!isCancelled) {
           setProjectsLoading(false);
         }
-      } else {
-        // Clear projects when in linewise mode
-        setProjects([]);
-        setSelectedProject('');
-        setFormData(prev => ({ ...prev, project: '' }));
-        setProjectsLoading(false);
+      }
+    } else {
+      // Clear projects when in linewise mode
+      setProjects([]);
+      setSelectedProject('');
+      setProjectsError('');
+      setFormData(prev => ({ ...prev, project: '' }));
+      setProjectsLoading(false);
+      setShowResults(false);
+    }
+  };
+
+  // Only debounce if we're in projectwise mode and not hiding results due to form changes
+  if (formData.viewMode === 'projectwise') {
+    const debounceTimeout = setTimeout(() => {
+      loadProjects();
+    }, 300); // 300ms debounce
+
+    // FIXED: Proper cleanup function
+    return () => {
+      isCancelled = true;
+      clearTimeout(debounceTimeout);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
-    
+  } else {
+    // Execute immediately for linewise mode (no debounce needed)
     loadProjects();
-  }, [selectedServer, formData.viewMode]); // Dependencies remain the same
+    
+    return () => {
+      isCancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }
+}, [selectedServer, formData.viewMode, reloadTrigger]);
 
   // Auto-scroll to results when they become visible
   useEffect(() => {
@@ -110,11 +184,10 @@ const Dashboard = () => {
           behavior: 'smooth',
           block: 'start'
         });
-      }, 100); // Small delay to ensure the element is rendered
+      }, 100);
     }
   }, [showResults]);
 
-  // Date validation function
   const validateDates = (startDate, endDate) => {
     if (!startDate || !endDate) {
       return { isValid: false, message: 'Please select both start date and end date' };
@@ -300,17 +373,17 @@ const Dashboard = () => {
       return false;
     }
 
-    // Check area
-    if (!formData.area) {
-      alert('Please select an Area');
-      return false;
-    }
+    // // Check area
+    // if (!formData.area) {
+    //   alert('Please select an Area');
+    //   return false;
+    // }
 
-    // Check PCBA type
-    if (!formData.pcbaType) {
-      alert('Please select a PCBA Type');
-      return false;
-    }
+    // // Check PCBA type
+    // if (!formData.pcbaType) {
+    //   alert('Please select a PCBA Type');
+    //   return false;
+    // }
 
     // Validate required fields based on view mode
     if (formData.viewMode === 'linewise' && !formData.lineNo) {
@@ -514,7 +587,8 @@ const Dashboard = () => {
                   disabled={projectsLoading}
                 >
                   <option value="">
-                    {projectsLoading ? 'Loading projects...' : 'Select Project'}
+                    {projectsLoading ? 'Loading projects...' : 
+                     projectsError ? 'Failed to load projects' : 'Select Project'}
                   </option>
                   {projects.map(project => (
                     <option 
@@ -525,9 +599,38 @@ const Dashboard = () => {
                     </option>
                   ))}
                 </select>
+                
+                {/* Loading/Error feedback */}
                 {projectsLoading && (
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    Loading project list...
+                  <div style={{ fontSize: '12px', color: '#007bff', marginTop: '4px' }}>
+                    ⏳ Loading project list...
+                  </div>
+                )}
+                
+                {projectsError && !projectsLoading && (
+                  <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '4px' }}>
+                    ⚠️ {projectsError} 
+                    <button 
+                      type="button"
+                      onClick={retryLoadProjects}
+                      style={{ 
+                        marginLeft: '8px', 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#007bff', 
+                        cursor: 'pointer', 
+                        textDecoration: 'underline',
+                        fontSize: '12px'
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                
+                {projects.length > 0 && !projectsLoading && !projectsError && (
+                  <div style={{ fontSize: '12px', color: '#28a745', marginTop: '4px' }}>
+                    ✓ {projects.length} projects loaded
                   </div>
                 )}
               </div>
