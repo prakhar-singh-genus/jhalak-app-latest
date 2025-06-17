@@ -123,22 +123,35 @@ export const SERVER_CONFIG = {
 
 // Data structure creators
 export const createProjectData = (formData, option = 1) => {
-  const { serverId, area, pcbaType, lineNo, project, startDate, endDate, viewMode } = formData;
-  
-  // Determine stage based on area and pcbaType
-  const stage = (area === 'PCBA' && pcbaType) ? pcbaType : area;
+  const { serverId, lineNo, project, startDate, endDate, viewMode } = formData;
   
   return {
     serverID: serverId,
     projCode: project,
-    stage,
+    stage: 0,  // ✅ Default to 0 to get all stages
     startDate,
     endDate,
     lineNo: viewMode === 'linewise' ? lineNo : null,
-    viewMode,
     Option: option
   };
 };
+// export const createProjectData = (formData, option = 1) => {
+//   const { serverId, area, pcbaType, lineNo, project, startDate, endDate, viewMode } = formData;
+  
+//   // Determine stage based on area and pcbaType
+//   const stage = (area === 'PCBA' && pcbaType) ? pcbaType : area;
+  
+//   return {
+//     serverID: serverId,
+//     projCode: project,
+//     stage,
+//     startDate,
+//     endDate,
+//     lineNo: viewMode === 'linewise' ? lineNo : null,
+//     viewMode,
+//     Option: option
+//   };
+// };
 
 export const createCPKData = (formData, paramName = null, option = 1) => {
   const { serverId, project, startDate, endDate, lineNo, viewMode } = formData;
@@ -150,7 +163,7 @@ export const createCPKData = (formData, paramName = null, option = 1) => {
     endDate,
     lineNo: viewMode === 'linewise' ? lineNo : null,
     paramName,
-    viewMode,
+    //viewMode,
     Option: option
   };
 };

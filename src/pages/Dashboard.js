@@ -9,8 +9,8 @@ import { apiService, SERVER_CONFIG, createProjectData } from '../services/apiSer
 const Dashboard = () => {
   const [formData, setFormData] = useState({
     monitoringServer: 'RCP JAIPUR',
-    area: 'PCBA',
-    pcbaType: 'Main PCB',
+    //area: 'PCBA',
+    //pcbaType: 'Main PCB',
     lineNo: '',
     project: '',
     startDate: '',
@@ -217,9 +217,8 @@ useEffect(() => {
     return { isValid: true, message: '' };
   };
 
-// Fixed GetFPYDatas function in Dashboard.js
-//This part of Code has been changed using Claude
-const GetFPYDatas = async (option) => {
+// ✅ FIXED GetFPYDatas function - Remove stage/area logic and fix FPY data loading
+const GetFPYDatas = async (option = 1) => {
   try {
     // ✅ VALIDATION: Ensure required fields are present
     if (!selectedServer) {
@@ -234,13 +233,6 @@ const GetFPYDatas = async (option) => {
       return null;
     }
 
-    // ✅ CRITICAL FIX: Ensure stage is valid (> 0)
-    if (!formData.stage || formData.stage <= 0) {
-      console.error('Invalid stage selected. Stage must be > 0');
-      setFpyData([]);
-      return null;
-    }
-
     // ✅ VALIDATION: Ensure dates are present
     if (!formData.startDate || !formData.endDate) {
       console.error('Start date and end date are required');
@@ -248,17 +240,17 @@ const GetFPYDatas = async (option) => {
       return null;
     }
 
+    // ✅ FIXED: Send data in the exact format your API expects
     const projectData = {
       serverID: selectedServer,
       projCode: formData.project,
-      stage: formData.stage,              // ✅ Now guaranteed to be > 0
+      stage: 0,  // ✅ Set to 0 to get all stages (based on your API logic)
       startDate: formData.startDate,
       endDate: formData.endDate,
-      Option: option || formData.viewMode || 1  // ✅ Default to 1 instead of 0
+      Option: option || 1
     };
 
     console.log('Dashboard - Sending FPY request:', projectData);
-    debugger;
 
     const data = await apiService.getFPYData(projectData);
     console.log('Dashboard - FPY API Response:', data);
@@ -279,14 +271,8 @@ const GetFPYDatas = async (option) => {
   }
 };
 
-// ✅ ADDITIONAL: Add validation before calling GetFPYDatas
+// ✅ SIMPLIFIED: Remove the validation function since we removed stage requirement
 const handleGetFPYData = async () => {
-  // Validate form data before making API call
-  if (!formData.stage || formData.stage <= 0) {
-    alert('Please select a valid stage before loading FPY data');
-    return;
-  }
-  
   if (!formData.project) {
     alert('Please select a project before loading FPY data');
     return;
@@ -404,90 +390,80 @@ const handleGetFPYData = async () => {
     setNoDataMessage('');
   };
 
-  const validateForm = () => {
-    // Check if dates are selected
-    if (!formData.startDate || !formData.endDate) {
-      alert('Please select both start date and end date');
-      return false;
-    }
+// ✅ NEW: Simplified validation function without area/stage requirements
+const validateFormSimplified = () => {
+  // Check if dates are selected
+  if (!formData.startDate || !formData.endDate) {
+    alert('Please select both start date and end date');
+    return false;
+  }
 
-    // Validate date range
-    const dateValidation = validateDates(formData.startDate, formData.endDate);
-    if (!dateValidation.isValid) {
-      alert(dateValidation.message);
-      return false;
-    }
+  // Validate date range
+  const dateValidation = validateDates(formData.startDate, formData.endDate);
+  if (!dateValidation.isValid) {
+    alert(dateValidation.message);
+    return false;
+  }
 
-    // Check monitoring server
-    if (!formData.monitoringServer) {
-      alert('Please select a Monitoring Server');
-      return false;
-    }
+  // Check monitoring server
+  if (!formData.monitoringServer) {
+    alert('Please select a Monitoring Server');
+    return false;
+  }
 
-    // // Check area
-    // if (!formData.area) {
-    //   alert('Please select an Area');
-    //   return false;
-    // }
+  // Validate required fields based on view mode
+  if (formData.viewMode === 'linewise' && !formData.lineNo) {
+    alert('Please select Line No for Line Wise view');
+    return false;
+  }
+  
+  if (formData.viewMode === 'projectwise' && !formData.project) {
+    alert('Please select a Project for Project Wise view');
+    return false;
+  }
 
-    // // Check PCBA type
-    // if (!formData.pcbaType) {
-    //   alert('Please select a PCBA Type');
-    //   return false;
-    // }
+  return true;
+};
 
-    // Validate required fields based on view mode
-    if (formData.viewMode === 'linewise' && !formData.lineNo) {
-      alert('Please select Line No for Line Wise view');
-      return false;
-    }
+// ✅ UPDATED: Fix the handleFind function
+const handleFind = async () => {
+  console.log('Search with:', formData);
+  
+  // ✅ SIMPLIFIED: Updated validation without area/stage
+  if (!validateFormSimplified()) {
+    return;
+  }
+  
+  // Show loading state
+  setIsLoading(true);
+  setShowResults(true);
+  setShowCharts(false);
+  setNoDataMessage('');
+  
+  try {
+    // Load data from API
+    const fpyResult = await GetFPYDatas(1);
+    const cpkResult = await GetCPKData();
     
-    if (formData.viewMode === 'projectwise' && !formData.project) {
-      alert('Please select a Project for Project Wise view');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleFind = async () => {
-    console.log('Search with:', formData);
+    // Check if any data was found
+    const hasFpyData = fpyResult && fpyResult.length > 0;
+    const hasCpkData = cpkResult && cpkResult.length > 0;
     
-    // Validate form before proceeding
-    if (!validateForm()) {
-      return;
-    }
-    
-    // Show loading state
-    setIsLoading(true);
-    setShowResults(true); // Show results container immediately
-    setShowCharts(false);
-    setNoDataMessage('');
-    
-    try {
-      // Load data from API
-      const fpyResult = await GetFPYDatas(1);
-      const cpkResult = await GetCPKData();
-      
-      // Check if any data was found
-      const hasFpyData = fpyResult && fpyResult.length > 0;
-      const hasCpkData = cpkResult && cpkResult.length > 0;
-      
-      if (hasFpyData || hasCpkData) {
-        setShowCharts(true);
-        setNoDataMessage('');
-      } else {
-        setShowCharts(false);
-        setNoDataMessage('No data found for selected criteria');
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    if (hasFpyData || hasCpkData) {
+      setShowCharts(true);
+      setNoDataMessage('');
+    } else {
       setShowCharts(false);
-      setNoDataMessage('Error occurred while fetching data. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setNoDataMessage('No data found for selected criteria');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    setShowCharts(false);
+    setNoDataMessage('Error occurred while fetching data. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleReset = () => {
     // Get current server from localStorage when resetting

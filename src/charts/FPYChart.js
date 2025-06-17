@@ -1,134 +1,156 @@
+// FIXED FPYChart.js - Better error handling and data validation
+
 import React, { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { apiService, createProjectData } from '../services/apiService';
+import { apiService } from '../services/apiService';
 
-// ✅ FIXED: Props now match API parameter names
 const FPYChart = ({ 
   data, 
-  serverID,        // ✅ Fixed: Was serverId, now matches API
+  serverID,
   startDate, 
   endDate, 
-  projCode,        // ✅ Fixed: Was project, now matches API
-  Option = 1,      // ✅ Fixed: Was viewMode, now matches API  
+  projCode,
+  Option = 1,
   lineNo = null 
 }) => {
   const [stageName, setStageName] = useState(null);
   const [paretoData, setParetoData] = useState(null);
 
-  // Debug: Log the incoming props
+  // ✅ ENHANCED: Better debugging and validation
   useEffect(() => {
-    console.log('FPY Chart - Received props:', { 
-      data, serverID, startDate, endDate, projCode, Option, lineNo 
+    console.log('=== FPY Chart Debug Info ===');
+    console.log('Props received:', { 
+      data: data ? `Array with ${data.length} items` : 'null/undefined',
+      serverID, 
+      startDate, 
+      endDate, 
+      projCode, 
+      Option, 
+      lineNo 
     });
+    
+    if (data && data.length > 0) {
+      console.log('First data item:', data[0]);
+      console.log('Data structure check:');
+      data.forEach((item, index) => {
+        console.log(`Item ${index}:`, {
+          stageName: item.stageName || 'Missing',
+          stageID: item.stageID || 'Missing', 
+          passCount: item.passCount || 0,
+          failCount: item.failCount || 0,
+          hasRequiredFields: item.hasOwnProperty('passCount') && item.hasOwnProperty('failCount')
+        });
+      });
+    }
+    console.log('=== End Debug Info ===');
   }, [data, serverID, startDate, endDate, projCode, Option, lineNo]);
 
-  // Validate required props
+  // ✅ ENHANCED: Better validation with specific error messages
   if (!serverID) {
     console.error('FPY Chart - Missing serverID prop');
-    return <div>Missing server configuration for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ff0000', color: '#ff0000'}}>
+      Error: Missing server configuration for FPY Chart
+    </div>;
   }
 
   if (!projCode) {
     console.error('FPY Chart - Missing projCode prop');
-    return <div>Missing project configuration for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ff0000', color: '#ff0000'}}>
+      Error: Missing project configuration for FPY Chart
+    </div>;
   }
 
   if (!startDate || !endDate) {
     console.error('FPY Chart - Missing date range props');
-    return <div>Missing date range for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ff0000', color: '#ff0000'}}>
+      Error: Missing date range for FPY Chart
+    </div>;
   }
 
-  // Check if data exists and is valid
   if (!data) {
     console.log('FPY Chart - No data provided');
-    return <div>No data provided for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ffa500', color: '#ffa500'}}>
+      No data provided for FPY Chart
+    </div>;
   }
 
   if (!Array.isArray(data)) {
     console.log('FPY Chart - Data is not an array:', typeof data, data);
-    return <div>Invalid data format for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ff0000', color: '#ff0000'}}>
+      Error: Invalid data format for FPY Chart (expected array, got {typeof data})
+    </div>;
   }
 
   if (data.length === 0) {
     console.log('FPY Chart - Empty data array');
-    return <div>No data available for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #0066cc', color: '#0066cc'}}>
+      No data available for FPY Chart (empty array)
+    </div>;
   }
 
-  // Validate data structure and create data points
+  // ✅ ENHANCED: Better data processing with more detailed logging
   const dataPoints = data.map((item, index) => {
-    console.log(`FPY Chart - Processing item ${index}:`, item);
+    console.log(`Processing FPY item ${index}:`, item);
     
-    // Check if required fields exist
-    if (!item.hasOwnProperty('passCount') || !item.hasOwnProperty('failCount')) {
-      console.warn(`FPY Chart - Missing passCount or failCount in item ${index}:`, item);
-      return null;
-    }
-
-    const passCount = Number(item.passCount) || 0;
-    const failCount = Number(item.failCount) || 0;
+    // ✅ FLEXIBLE: Handle different possible field names
+    const passCount = Number(item.passCount || item.PassCount || item.pass || 0);
+    const failCount = Number(item.failCount || item.FailCount || item.fail || 0);
+    const stageName = item.stageName || item.StageName || item.stage || `Stage ${index + 1}`;
+    const stageID = item.stageID || item.StageID || item.id || index;
+    
     const totalCount = passCount + failCount;
     
     if (totalCount === 0) {
       console.warn(`FPY Chart - Zero total count for item ${index}:`, item);
       return {
-        name: item.stageName || `Stage ${index + 1}`,
-        id: item.stageID || index,
+        name: stageName,
+        id: stageID,
         y: 0,
-        drilldown: item.stageName || `Stage ${index + 1}`,
-        header: `[Pass:${passCount} Fail:${failCount}]`
+        drilldown: stageName,
+        header: `[Pass:${passCount} Fail:${failCount}]`,
+        color: '#ff0000' // Red for zero values
       };
     }
 
     const fpyPercentage = (passCount / totalCount) * 100;
     
     return {
-      name: item.stageName || `Stage ${index + 1}`,
-      id: item.stageID || index,
+      name: stageName,
+      id: stageID,
       y: fpyPercentage,
-      drilldown: item.stageName || `Stage ${index + 1}`,
-      header: `[Pass:${passCount} Fail:${failCount}]`
+      drilldown: stageName,
+      header: `[Pass:${passCount} Fail:${failCount}]`,
+      color: fpyPercentage >= 95 ? '#28a745' : fpyPercentage >= 80 ? '#ffc107' : '#dc3545'
     };
-  }).filter(Boolean); // Remove null entries
+  }).filter(Boolean);
 
-  console.log('FPY Chart - Processed data points:', dataPoints);
+  console.log('FPY Chart - Final processed data points:', dataPoints);
 
   if (dataPoints.length === 0) {
     console.log('FPY Chart - No valid data points after processing');
-    return <div>No valid data points for FPY Chart</div>;
+    return <div style={{padding: '20px', border: '1px solid #ff0000', color: '#ff0000'}}>
+      Error: No valid data points found in FPY data
+    </div>;
   }
 
-  // ✅ FIXED: Pareto data fetch with correct parameter names
+  // ✅ FIXED: Correct Pareto data fetch
   const fetchParetoData = async (stageID, stageName) => {
     console.log('FPY Chart - Fetching Pareto data for stage:', stageID, stageName);
     
     try {
-      // ✅ FIXED: Use correct parameter names that match API
       const requestData = {
-        serverID: serverID,      // ✅ Fixed: Was serverId
-        projCode: projCode,      // ✅ Fixed: Was project
-        stage: stageID,          // ✅ Correct
-        startDate: startDate,    // ✅ Correct
-        endDate: endDate,        // ✅ Correct
-        Option: 2                // ✅ Fixed: Was viewMode, hardcoded to 2 for Pareto
+        serverID: serverID,
+        projCode: projCode,
+        stage: stageID,
+        startDate: startDate,
+        endDate: endDate,
+        Option: 2  // Pareto option
       };
 
       console.log('FPY Chart - Pareto request data:', requestData);
 
-      // Check if createProjectData is needed or if we can use requestData directly
-      let payload;
-      if (typeof createProjectData === 'function') {
-        payload = createProjectData(requestData);
-        // Ensure the stage and Option are set correctly after createProjectData
-        payload.stage = stageID;
-        payload.Option = 2;
-      } else {
-        payload = requestData;
-      }
-
-      console.log('FPY Chart - Final Pareto payload:', payload);
-
-      const paretoResponse = await apiService.getParetoData(payload);
+      const paretoResponse = await apiService.getParetoData(requestData);
       console.log('FPY Chart - Pareto response:', paretoResponse);
       
       if (paretoResponse && paretoResponse.length > 0) {
@@ -153,22 +175,35 @@ const FPYChart = ({
     },
     title: { 
       align: 'left', 
-      text: 'FPY Chart' 
+      text: 'First Pass Yield (FPY) Analysis' 
     },
     subtitle: { 
       align: 'left', 
-      text: 'Click the columns to view Pareto graph.' 
+      text: 'Click columns to view detailed failure analysis (Pareto)' 
     },
     xAxis: { 
       type: 'category',
       labels: {
-        rotation: -45
+        rotation: -45,
+        style: {
+          fontSize: '11px'
+        }
       }
     },
     yAxis: { 
-      title: { text: 'First Pass Yield %' },
+      title: { text: 'First Pass Yield (%)' },
       min: 0,
-      max: 100
+      max: 100,
+      plotLines: [{
+        value: 95,
+        color: '#28a745',
+        dashStyle: 'dash',
+        width: 2,
+        label: {
+          text: 'Target: 95%',
+          align: 'right'
+        }
+      }]
     },
     legend: { enabled: false },
     plotOptions: {
@@ -181,23 +216,27 @@ const FPYChart = ({
             }
           }
         },
-        cursor: 'pointer'
+        cursor: 'pointer',
+        borderWidth: 1,
+        borderColor: '#000000'
       },
       series: {
-        borderWidth: 0,
         dataLabels: { 
           enabled: true, 
-          format: '{point.y:.1f}%' 
+          format: '{point.y:.1f}%',
+          style: {
+            fontWeight: 'bold'
+          }
         }
       }
     },
     tooltip: {
       headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-      pointFormat: '<span style="color:{point.color}">{point.name} {point.header}</span>: <b>{point.y:.2f}%</b><br/>'
+      pointFormat: '<span style="color:{point.color}">{point.name} {point.header}</span>: <b>{point.y:.2f}%</b><br/>Click for detailed analysis'
     },
     series: [{
       name: 'FPY',
-      colorByPoint: true,
+      colorByPoint: false,
       data: dataPoints
     }]
   };
@@ -210,9 +249,25 @@ const FPYChart = ({
         containerProps={{ style: { height: '400px', width: '100%' } }}
       />
       {paretoData && (
-        <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
-          <h4>Pareto Data for: {stageName}</h4>
-          <pre style={{ maxHeight: '300px', overflow: 'auto' }}>
+        <div style={{ 
+          marginTop: '20px', 
+          padding: '15px', 
+          border: '1px solid #ccc', 
+          borderRadius: '5px',
+          backgroundColor: '#f8f9fa'
+        }}>
+          <h4 style={{color: '#333', marginBottom: '10px'}}>
+            Failure Analysis (Pareto) for: {stageName}
+          </h4>
+          <pre style={{ 
+            maxHeight: '300px', 
+            overflow: 'auto', 
+            backgroundColor: '#fff',
+            padding: '10px',
+            border: '1px solid #ddd',
+            borderRadius: '3px',
+            fontSize: '12px'
+          }}>
             {JSON.stringify(paretoData, null, 2)}
           </pre>
         </div>
