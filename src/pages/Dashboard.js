@@ -217,23 +217,55 @@ useEffect(() => {
     return { isValid: true, message: '' };
   };
 
-  // Function to get FPY data from API
-  const GetFPYDatas = async (option) => {
+// Fixed GetFPYDatas function in Dashboard.js
+//This part of Code has been changed using Claude
+const GetFPYDatas = async (option) => {
   try {
+    // ✅ VALIDATION: Ensure required fields are present
+    if (!selectedServer) {
+      console.error('No server selected');
+      setFpyData([]);
+      return null;
+    }
+
+    if (!formData.project) {
+      console.error('No project selected');
+      setFpyData([]);
+      return null;
+    }
+
+    // ✅ CRITICAL FIX: Ensure stage is valid (> 0)
+    if (!formData.stage || formData.stage <= 0) {
+      console.error('Invalid stage selected. Stage must be > 0');
+      setFpyData([]);
+      return null;
+    }
+
+    // ✅ VALIDATION: Ensure dates are present
+    if (!formData.startDate || !formData.endDate) {
+      console.error('Start date and end date are required');
+      setFpyData([]);
+      return null;
+    }
+
     const projectData = {
       serverID: selectedServer,
       projCode: formData.project,
-      stage: formData.stage || 0,                     // default if missing
+      stage: formData.stage,              // ✅ Now guaranteed to be > 0
       startDate: formData.startDate,
       endDate: formData.endDate,
-      Option: option || formData.viewMode || 0        // prefer `option` param, fallback to formData
+      Option: option || formData.viewMode || 1  // ✅ Default to 1 instead of 0
     };
 
-    const data = await apiService.getFPYData(projectData);
+    console.log('Dashboard - Sending FPY request:', projectData);
+    debugger;
 
-    if (data && data.length > 0) {
+    const data = await apiService.getFPYData(projectData);
+    console.log('Dashboard - FPY API Response:', data);
+
+    if (data && Array.isArray(data) && data.length > 0) {
       setFpyData(data);
-      console.log('FPY Data loaded:', data);
+      console.log('FPY Data loaded successfully:', data.length, 'records');
     } else {
       console.log('No FPY data found for current selection');
       setFpyData([]);
@@ -246,36 +278,27 @@ useEffect(() => {
     return null;
   }
 };
-  // const GetFPYDatas = async (option) => {
-  //   try {
-  //     const projectData = createProjectData({
-  //       serverId: selectedServer,
-  //       area: formData.area,
-  //       pcbaType: formData.pcbaType,
-  //       lineNo: formData.lineNo,
-  //       project: formData.project,
-  //       startDate: formData.startDate,
-  //       endDate: formData.endDate,
-  //       viewMode: formData.viewMode
-  //     });
-      
-  //     const data = await apiService.getFPYData(projectData);
-      
-  //     if (data && data.length > 0) {
-  //       setFpyData(data);
-  //       console.log('FPY Data loaded:', data);
-  //     } else {
-  //       console.log('No FPY data found for current selection');
-  //       setFpyData([]);
-  //     }
-      
-  //     return data;
-  //   } catch (error) {
-  //     console.error('Error loading FPY data:', error);
-  //     setFpyData([]);
-  //     return null;
-  //   }
-  // };
+
+// ✅ ADDITIONAL: Add validation before calling GetFPYDatas
+const handleGetFPYData = async () => {
+  // Validate form data before making API call
+  if (!formData.stage || formData.stage <= 0) {
+    alert('Please select a valid stage before loading FPY data');
+    return;
+  }
+  
+  if (!formData.project) {
+    alert('Please select a project before loading FPY data');
+    return;
+  }
+  
+  if (!formData.startDate || !formData.endDate) {
+    alert('Please select start and end dates');
+    return;
+  }
+  
+  await GetFPYDatas();
+};
 
   // Function to get CPK data from API
   const GetCPKData = async () => {
@@ -740,15 +763,13 @@ useEffect(() => {
                 {fpyData && fpyData.length > 0 && (
                   <div className="chart-block">
                   <FPYChart
-                   data={fpyData}
-                   serverId={selectedServer}
-                   startDate={formData.startDate}
-                   endDate={formData.endDate}
-                   project={formData.project}
-                   viewMode={formData.viewMode}
-                   lineNo={formData.lineNo}
+                    data={fpyData}
+                    serverID={selectedServer}
+                    projCode={formData.project}
+                    Option={formData.viewMode}
+                    startDate={formData.startDate}
+                    endDate={formData.endDate}
                   />
-
                   </div>
                 )}
 

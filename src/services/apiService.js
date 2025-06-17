@@ -23,6 +23,7 @@ const ENDPOINTS = {
 
 // Helper: centralized fetch handler
 const fetchData = async (url, options = {}, fallback = null) => {
+  debugger;
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
@@ -75,6 +76,7 @@ export const apiService = {
   // FPY APIs
   getFPYData: (projectData) =>
     fetchData(buildUrl(ENDPOINTS.FPY.GET_FPYS), {
+      
       method: 'POST',
       headers: HEADERS,
       body: JSON.stringify(projectData)
