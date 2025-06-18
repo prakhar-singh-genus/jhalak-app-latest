@@ -244,7 +244,7 @@ const GetFPYDatas = async (option = 1) => {
     const projectData = {
       serverID: selectedServer,
       projCode: formData.project,
-      stage: 0,  // ✅ Set to 0 to get all stages (based on your API logic)
+      stage: 5,  // ✅ Set to 0 to get all stages (based on your API logic)
       startDate: formData.startDate,
       endDate: formData.endDate,
       Option: option || 1

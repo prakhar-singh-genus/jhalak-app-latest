@@ -1,5 +1,7 @@
 // config.js
-export const baseUrl = "http://10.133.100.28:5001/api";
+//export const baseUrl = "http://10.133.100.28:5001/api";
+
+export const baseUrl = "https://localhost:5001/api";
 export const config = {
     baseUrl: "http://10.133.100.28:5001/api",
     logoUrl: 'avatars/genuslogo.jpg',
