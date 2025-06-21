@@ -1,9 +1,8 @@
-// FIXED FPYChart.js - Better error handling and data validation
-
 import React, { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { apiService } from '../services/apiService';
+import ParetoChart from './ParetoChart'; // ✅ Import ParetoChart component
 
 const FPYChart = ({ 
   data, 
@@ -16,6 +15,7 @@ const FPYChart = ({
 }) => {
   const [stageName, setStageName] = useState(null);
   const [paretoData, setParetoData] = useState(null);
+  const [showPareto, setShowPareto] = useState(false); // ✅ Add state to control Pareto visibility
 
   // ✅ ENHANCED: Better debugging and validation
   useEffect(() => {
@@ -134,9 +134,14 @@ const FPYChart = ({
     </div>;
   }
 
-  // ✅ FIXED: Correct Pareto data fetch
+  // ✅ ENHANCED: Better Pareto data fetch with loading state
   const fetchParetoData = async (stageID, stageName) => {
     console.log('FPY Chart - Fetching Pareto data for stage:', stageID, stageName);
+    
+    // Show loading state
+    setStageName(stageName);
+    setParetoData(null);
+    setShowPareto(true);
     
     try {
       const requestData = {
@@ -155,17 +160,21 @@ const FPYChart = ({
       
       if (paretoResponse && paretoResponse.length > 0) {
         setParetoData(paretoResponse);
-        setStageName(stageName);
       } else {
-        setParetoData(null);
-        setStageName(stageName);
+        setParetoData([]);
         console.log('FPY Chart - No Pareto data found for stage:', stageName);
       }
     } catch (error) {
       console.error('FPY Chart - Error fetching Pareto data:', error);
-      setParetoData(null);
-      setStageName(stageName);
+      setParetoData([]);
     }
+  };
+
+  // ✅ ADD: Function to close Pareto chart
+  const closeParetoChart = () => {
+    setShowPareto(false);
+    setParetoData(null);
+    setStageName(null);
   };
 
   const optionsMain = {
@@ -243,12 +252,15 @@ const FPYChart = ({
 
   return (
     <div style={{ width: '100%' }}>
+      {/* ✅ FPY Chart */}
       <HighchartsReact 
         highcharts={Highcharts} 
         options={optionsMain} 
         containerProps={{ style: { height: '400px', width: '100%' } }}
       />
-      {paretoData && (
+      
+      {/* ✅ Pareto Chart Section */}
+      {showPareto && (
         <div style={{ 
           marginTop: '20px', 
           padding: '15px', 
@@ -256,20 +268,55 @@ const FPYChart = ({
           borderRadius: '5px',
           backgroundColor: '#f8f9fa'
         }}>
-          <h4 style={{color: '#333', marginBottom: '10px'}}>
-            Failure Analysis (Pareto) for: {stageName}
-          </h4>
-          <pre style={{ 
-            maxHeight: '300px', 
-            overflow: 'auto', 
-            backgroundColor: '#fff',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '3px',
-            fontSize: '12px'
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '15px'
           }}>
-            {JSON.stringify(paretoData, null, 2)}
-          </pre>
+            <h4 style={{color: '#333', margin: '0'}}>
+              Failure Analysis (Pareto) for: {stageName}
+            </h4>
+            <button 
+              onClick={closeParetoChart}
+              style={{
+                background: '#dc3545',
+                color: 'white',
+                border: 'none',
+                padding: '5px 10px',
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕ Close
+            </button>
+          </div>
+          
+          {/* ✅ Show loading state while fetching */}
+          {paretoData === null ? (
+            <div style={{
+              padding: '20px',
+              textAlign: 'center',
+              color: '#666',
+              fontStyle: 'italic'
+            }}>
+              Loading Pareto data for {stageName}...
+            </div>
+          ) : paretoData.length === 0 ? (
+            <div style={{
+              padding: '20px',
+              textAlign: 'center',
+              color: '#666',
+              fontStyle: 'italic'
+            }}>
+              No failure data available for {stageName}
+            </div>
+          ) : (
+            <ParetoChart 
+              ParetoData={paretoData} 
+              stageName={stageName} 
+            />
+          )}
         </div>
       )}
     </div>
@@ -277,103 +324,3 @@ const FPYChart = ({
 };
 
 export default FPYChart;
-// import React, { useState } from 'react';
-// import Highcharts from 'highcharts';
-// import HighchartsReact from 'highcharts-react-official';
-// import { apiService, createProjectData } from '../services/apiService';
-
-// const FPYChart = ({ data, serverId, startDate, endDate, project, viewMode = 'projectwise', lineNo = null }) => {
-//   const [stageName, setStageName] = useState(null);
-//   const [paretoData, setParetoData] = useState(null);
-
-//   if (!data || !Array.isArray(data) || data.length === 0) {
-//     return <div>No data available for FPY Chart</div>;
-//   }
-
-//   const dataPoints = data.map(item => ({
-//     name: item.stageName,
-//     id: item.stageID,
-//     y: (item.passCount / (item.passCount + item.failCount)) * 100,
-//     drilldown: item.stageName,
-//     header: `[Pass:${item.passCount} Fail:${item.failCount}]`
-//   }));
-
-//   const fetchParetoData = async (stageID, stageName) => {
-//     const requestData = {
-//       serverId,
-//       area: stageName, // can also pass actual `area` if needed
-//       pcbaType: stageName, // not needed for pareto usually
-//       lineNo,
-//       project,
-//       startDate,
-//       endDate,
-//       viewMode,
-//     };
-
-//     const payload = createProjectData(requestData);
-//     payload.stage = stageID; // override with actual stage ID
-//     payload.Option = 2;
-
-//     try {
-//       const paretoResponse = await apiService.getParetoData(payload);
-//       if (paretoResponse && paretoResponse.length > 0) {
-//         setParetoData(paretoResponse);
-//         setStageName(stageName);
-//       } else {
-//         setParetoData(null);
-//         setStageName(stageName);
-//       }
-//     } catch (error) {
-//       console.error('Error fetching Pareto data:', error);
-//       setParetoData(null);
-//       setStageName(stageName);
-//     }
-//   };
-
-//   const optionsMain = {
-//     chart: { type: 'column' },
-//     title: { align: 'left', text: 'FPY Chart' },
-//     subtitle: { align: 'left', text: 'Click the columns to view pareto graph.' },
-//     xAxis: { type: 'category' },
-//     yAxis: { title: { text: 'Total pass meters %' } },
-//     legend: { enabled: false },
-//     plotOptions: {
-//       column: {
-//         point: {
-//           events: {
-//             click: function () {
-//               fetchParetoData(this.options.id, this.name);
-//             }
-//           }
-//         }
-//       },
-//       series: {
-//         borderWidth: 0,
-//         dataLabels: { enabled: true, format: '{point.y:.1f}%' }
-//       }
-//     },
-//     tooltip: {
-//       headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-//       pointFormat: '<span style="color:{point.color}">{point.name} {point.header}</span>: <b>{point.y:.2f}%</b><br/>'
-//     },
-//     series: [{
-//       name: 'FPYs',
-//       colorByPoint: true,
-//       data: dataPoints
-//     }]
-//   };
-
-//   return (
-//     <>
-//       <HighchartsReact highcharts={Highcharts} options={optionsMain} />
-//       {paretoData && (
-//         <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
-//           <h4>Pareto Data for: {stageName}</h4>
-//           <pre>{JSON.stringify(paretoData, null, 2)}</pre>
-//         </div>
-//       )}
-//     </>
-//   );
-// };
-
-// export default FPYChart;
