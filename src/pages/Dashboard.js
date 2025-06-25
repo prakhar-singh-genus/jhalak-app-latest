@@ -298,7 +298,7 @@ const handleGetFPYData = async () => {
 
       const cpkRequestData = createCPKData({
         serverId: selectedServer,
-        project: formData.project,
+        projCode: formData.project,
         startDate: formData.startDate,
         endDate: formData.endDate,
         lineNo: formData.lineNo,
@@ -797,13 +797,6 @@ const handleFind = async () => {
 };
 
 export default Dashboard;
-
-
-
-
-
-
-
 
 
 

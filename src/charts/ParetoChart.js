@@ -187,19 +187,18 @@ class ParetoChart extends Component {
           border: '1px solid #dee2e6',
           borderRadius: '5px'
         }}>
-		<h6 style={{ margin: '0 0 10px 0', color: '#495057', fontWeight: 600 }}>Data Summary:</h6>
-		<div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-		<div style={{ fontWeight: 500 }}>
-			<span style={{ fontWeight: 600 }}>Total Errors:</span> {data.reduce((sum, val) => sum + val, 0)}
-		</div>
-		<div style={{ fontWeight: 500 }}>
-			<span style={{ fontWeight: 600 }}>Error Types:</span> {category.length}
-		</div>
-		<div style={{ fontWeight: 500 }}>
-			<span style={{ fontWeight: 600 }}>Top Error:</span> {category[0]} ({data[0]} occurrences)
-		</div>
-		</div>
-
+		    <h6 style={{ margin: '0 0 10px 0', color: '#495057', fontWeight: 600 }}>Data Summary:</h6>
+		    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+		    <div style={{ fontWeight: 500 }}>
+			      <span style={{ fontWeight: 600 }}>Total Errors:</span> {data.reduce((sum, val) => sum + val, 0)}
+		    </div>
+		      <div style={{ fontWeight: 500 }}>
+			    <span style={{ fontWeight: 600 }}>Error Types:</span> {category.length}
+		    </div>
+		    <div style={{ fontWeight: 500 }}>
+			      <span style={{ fontWeight: 600 }}>Top Error:</span> {category[0]} ({data[0]} occurrences)
+		    </div>
+		    </div>
         </div>
       </div>
     );

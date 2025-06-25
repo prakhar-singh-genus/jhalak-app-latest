@@ -178,7 +178,7 @@ export const apiService = {
   // ✅ Enhanced CPK API
   getCPKData: async (cpkData) => {
     console.log('📈 API Service - getCPKData called with:', cpkData);
-    
+      debugger
     try {
       const response = await fetchData(buildUrl(ENDPOINTS.FPY.GET_CPK), {
         method: 'POST',
@@ -210,6 +210,7 @@ export const apiService = {
       headers: HEADERS,
       body: JSON.stringify(cpkData)
     }, [])
+    
 };
 
 // Server configurations
