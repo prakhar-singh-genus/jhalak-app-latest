@@ -10,9 +10,9 @@ if (typeof boost === "function") {
 
 const MAX_POINTS = 10000;
 
-const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkParameters }) => {
+const CPKChart = ({ serverId, startDate, endDate, projCode }) => {
   // =========================
-  // ✅ State Declarations (MUST BE FIRST)
+  // ✅ State Declarations
   // =========================
   const [plotscatter, setScatterGraphStatus] = useState(false);
   const [pointvals, setPoints] = useState([]);
@@ -22,11 +22,69 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
   const [isLoadingScatter, setIsLoadingScatter] = useState(false);
   const [isCalculatingCPK, setIsCalculatingCPK] = useState(false);
   const [cpkCalculationData, setCpkCalculationData] = useState([]);
+  const [isLoadingCPKData, setIsLoadingCPKData] = useState(false);
+  const [cpkParameterData, setCpkParameterData] = useState([]);
+  const [apiError, setApiError] = useState(null);
 
   // =========================
-  // ✅ NEW: Calculate CPK Values Effect
+  // ✅ FIXED: Enhanced CPK Parameter Data Fetching
   // =========================
-  
+  useEffect(() => {
+    const fetchCPKParameterData = async () => {
+      if (!serverId || !projCode || !startDate || !endDate) {
+        console.warn('Missing required parameters for CPK parameter data');
+        return;
+      }
+
+      console.log(`📊 Fetching CPK parameter data for server ${serverId}...`);
+      setIsLoadingCPKData(true);
+      setApiError(null);
+
+      try {
+        const cpkRequestData = {
+          serverID: Number(serverId),
+          projCode: String(projCode),
+          startDate: startDate,
+          endDate: endDate,
+          Option: 1, // Option 1 for getting CPK parameter info
+          paramName: "0" // Default parameter name
+        };
+
+        console.log('📤 CPK Parameter Data Request:', cpkRequestData);
+        
+        const cpkParamResults = await apiService.getCPKData(cpkRequestData);
+        
+        // 🔧 FIXED: Better error handling and response validation
+        if (cpkParamResults) {
+          if (Array.isArray(cpkParamResults) && cpkParamResults.length > 0) {
+            console.log(`✅ CPK Parameter Data Results for server ${serverId}:`, cpkParamResults);
+            setCpkParameterData(cpkParamResults);
+          } else if (cpkParamResults.length === 0) {
+            console.warn(`⚠️ No CPK parameter data found for server ${serverId}`);
+            setCpkParameterData([]);
+          } else {
+            console.warn(`⚠️ Unexpected CPK parameter data format for server ${serverId}:`, cpkParamResults);
+            setCpkParameterData([]);
+          }
+        } else {
+          console.warn(`⚠️ No CPK parameter data received for server ${serverId}`);
+          setCpkParameterData([]);
+        }
+      } catch (error) {
+        console.error(`❌ Error fetching CPK parameter data for server ${serverId}:`, error);
+        setApiError(`Failed to fetch CPK parameters: ${error.message}`);
+        setCpkParameterData([]);
+      } finally {
+        setIsLoadingCPKData(false);
+      }
+    };
+
+    fetchCPKParameterData();
+  }, [serverId, projCode, startDate, endDate]);
+
+  // =========================
+  // ✅ FIXED: Enhanced CPK Calculation with Better Error Handling
+  // =========================
   useEffect(() => {
     const calculateCPKValues = async () => {
       if (!serverId || !projCode || !startDate || !endDate) {
@@ -34,9 +92,9 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
         return;
       }
 
-      console.log('🧮 Starting CPK calculation...');
-
+      console.log(`🧮 Starting CPK calculation for server ${serverId}...`);
       setIsCalculatingCPK(true);
+      setApiError(null);
 
       try {
         const cpkRequestData = {
@@ -46,79 +104,137 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
           endDate: endDate
         };
 
-        console.log('📊 CPK Calculation Request:', cpkRequestData);
+        console.log(`📊 CPK Calculation Request for server ${serverId}:`, cpkRequestData);
         
         const cpkResults = await apiService.calculateCPK(cpkRequestData);
-        debugger;
-        if (cpkResults && Array.isArray(cpkResults)) {
-          console.log('✅ CPK Calculation Results:', cpkResults);
-          setCpkCalculationData(cpkResults);
+        
+        // 🔧 FIXED: Better handling of different server response formats
+        if (cpkResults) {
+          if (Array.isArray(cpkResults) && cpkResults.length > 0) {
+            console.log(`✅ CPK Calculation Results for server ${serverId}:`, cpkResults);
+            setCpkCalculationData(cpkResults);
+          } else if (Array.isArray(cpkResults) && cpkResults.length === 0) {
+            console.warn(`⚠️ No CPK calculation results for server ${serverId} - empty array`);
+            setCpkCalculationData([]);
+          } else {
+            console.warn(`⚠️ Unexpected CPK calculation format for server ${serverId}:`, cpkResults);
+            setCpkCalculationData([]);
+          }
         } else {
-          console.warn('⚠️ No CPK calculation results received');
+          console.warn(`⚠️ No CPK calculation results received for server ${serverId}`);
           setCpkCalculationData([]);
         }
       } catch (error) {
-        console.error('❌ Error calculating CPK:', error);
+        console.error(`❌ Error calculating CPK for server ${serverId}:`, error);
+        setApiError(`Failed to calculate CPK: ${error.message}`);
         setCpkCalculationData([]);
       } finally {
         setIsCalculatingCPK(false);
       }
     };
 
-    // Only calculate if we have the required data
+    // 🔧 FIXED: Only calculate if we have the required data
+    // Remove dependency on cpkParameterData to avoid blocking
     if (serverId && projCode && startDate && endDate) {
       calculateCPKValues();
     }
   }, [serverId, projCode, startDate, endDate]);
 
   // =========================
-  // ✅ Enhanced Derivations (useMemo) 
+  // ✅ FIXED: Enhanced Data Points with Fallback Logic
   // =========================
   const dataPoints = useMemo(() => {
-    if (!Array.isArray(data) || !Array.isArray(cpkList)) return [];
+    console.log(`🔍 Creating data points for server ${serverId}...`);
+    console.log('  - cpkCalculationData:', cpkCalculationData.length);
+    console.log('  - cpkParameterData:', cpkParameterData.length);
     
-    // Merge original data with calculated CPK values if available
-    const mergedData = data.map((item, index) => {
-      const calculatedCPK = cpkCalculationData.find(calc => 
-        calc.parameterName === item.parameterName || 
-        calc.ParameterName === item.parameterName
-      );
+    if (!Array.isArray(cpkCalculationData) || cpkCalculationData.length === 0) {
+      console.warn(`⚠️ No CPK calculation data available for server ${serverId}`);
+      return [];
+    }
+
+    // 🔧 FIXED: Enhanced data point creation with better field mapping
+    const points = cpkCalculationData.map((item, index) => {
+      // Handle different possible field names from different servers
+      const paramName = item.ParameterName || 
+                       item.parameterName || 
+                       item.ParamName || 
+                       item.paramName || 
+                       item.Name || 
+                       item.name || 
+                       `Parameter ${index + 1}`;
+      
+      const cpkValue = item.CPKValue || 
+                      item.cpkValue || 
+                      item.CPK || 
+                      item.cpk || 
+                      item.Value || 
+                      item.value || 
+                      0;
+      
+      const lowerLimit = item.LowerLimit || 
+                        item.lowerLimit || 
+                        item.LSL || 
+                        item.lsl || 
+                        item.Lower || 
+                        item.lower || 
+                        -25;
+      
+      const upperLimit = item.UpperLimit || 
+                        item.upperLimit || 
+                        item.USL || 
+                        item.usl || 
+                        item.Upper || 
+                        item.upper || 
+                        25;
+      
+      const mean = item.Mean || 
+                  item.mean || 
+                  item.Average || 
+                  item.average || 
+                  item.Avg || 
+                  item.avg || 
+                  0;
+      
+      const stdDev = item.StandardDeviation || 
+                    item.standardDeviation || 
+                    item.StdDev || 
+                    item.stdDev || 
+                    item.Sigma || 
+                    item.sigma || 
+                    0;
+      
+      const count = item.Count || 
+                   item.count || 
+                   item.SampleSize || 
+                   item.sampleSize || 
+                   item.N || 
+                   item.n || 
+                   0;
       
       return {
-        ...item,
-        cpkValue: calculatedCPK?.cpkValue || calculatedCPK?.CPKValue || item.cpkValue,
-        // Add additional calculated fields if available
-        mean: calculatedCPK?.mean,
-        standardDeviation: calculatedCPK?.standardDeviation,
-        processCapability: calculatedCPK?.processCapability
+        name: paramName,
+        y: parseFloat(cpkValue) || 0,
+        count: parseInt(count) || 0,
+        lowerLimit: parseFloat(lowerLimit) || -25,
+        upperLimit: parseFloat(upperLimit) || 25,
+        mean: parseFloat(mean) || 0,
+        standardDeviation: parseFloat(stdDev) || 0,
+        id: item.ID || item.id || item.ParameterID || item.parameterId || index,
+        enabled: true,
+        serverID: serverId // Add server ID for debugging
       };
     });
-    
-    const tempdataPoints = mergedData.map((item, index) =>
-      cpkList[index]?.state
-        ? {
-            name: item.parameterName,
-            y: item.cpkValue,
-            count: item.metercount,
-            lowerLimit: item.lowerLimit,
-            upperLimit: item.upperLimit,
-            mean: item.mean,
-            standardDeviation: item.standardDeviation,
-          }
-        : null
-    );
 
-    const filteredPoints = tempdataPoints.filter(Boolean);
-    
-    if (filteredPoints.length === 0) {
-      console.warn('No CPK parameters are enabled for display');
-    }
-    
-    return filteredPoints;
-  }, [data, cpkList, cpkCalculationData]);
+    console.log(`✅ Created ${points.length} data points for server ${serverId}`);
+    return points;
+  }, [cpkCalculationData, serverId]);
 
   const category = useMemo(() => dataPoints.map((item) => item.name), [dataPoints]);
 
+  // =========================
+  // ✅ Statistics Calculation (unchanged)
+  // =========================
   const statistics = useMemo(() => {
     if (!Array.isArray(pointvals) || pointvals.length === 0) return null;
 
@@ -144,12 +260,15 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
   }, [pointvals, lowerLimit, upperLimit]);
 
   // =========================
-  // ✅ NEW: Refresh CPK Calculation Function
+  // ✅ FIXED: Enhanced Refresh Function
   // =========================
   const refreshCPKCalculation = useCallback(async () => {
     if (!serverId || !projCode || !startDate || !endDate) return;
 
+    console.log(`🔄 Refreshing CPK calculation for server ${serverId}...`);
     setIsCalculatingCPK(true);
+    setApiError(null);
+
     try {
       const cpkRequestData = {
         serverID: Number(serverId),
@@ -157,36 +276,45 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
         startDate: startDate,
         endDate: endDate
       };
-      debugger;
 
       const cpkResults = await apiService.calculateCPK(cpkRequestData);
       
       if (cpkResults && Array.isArray(cpkResults)) {
         setCpkCalculationData(cpkResults);
-        console.log('🔄 CPK values refreshed successfully');
+        console.log(`🔄 CPK values refreshed successfully for server ${serverId}`);
+      } else {
+        console.warn(`⚠️ No CPK data received during refresh for server ${serverId}`);
+        setCpkCalculationData([]);
       }
     } catch (error) {
-      console.error('❌ Error refreshing CPK:', error);
+      console.error(`❌ Error refreshing CPK for server ${serverId}:`, error);
+      setApiError(`Refresh failed: ${error.message}`);
     } finally {
       setIsCalculatingCPK(false);
     }
   }, [serverId, projCode, startDate, endDate]);
 
   // =========================
-  // ✅ Enhanced Event Handlers
+  // ✅ FIXED: Enhanced Bar Click Handler with Better Error Handling
   // =========================
   const handleBarClick = useCallback(
     async function () {
       const paramName = this.name;
-      console.log('🎯 CPK Bar clicked:', paramName);
-      console.log('🔍 Using projCode:', projCode);
+      const point = this.options;
+      
+      console.log(`🎯 CPK Bar clicked for server ${serverId}:`, paramName);
+      console.log('🔍 Point data:', point);
 
-      // Show loading state
       setIsLoadingScatter(true);
       setScatterGraphStatus(true);
       setCPKName(paramName);
+      setApiError(null);
+      
+      // Set limits from the clicked point
+      setLowerLimit(point.lowerLimit || -25);
+      setUpperLimit(point.upperLimit || 25);
 
-      // Enhanced request data structure
+      // 🔧 FIXED: Enhanced request structure with server-specific handling
       const requestData = {
         serverId: serverId,
         serverID: serverId,
@@ -199,56 +327,71 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
         viewMode: 'projectwise',
       };
 
-      console.log('📊 CPK Scatter Request Data:', requestData);
+      console.log(`📊 CPK Scatter Request Data for server ${serverId}:`, requestData);
 
       try {
         const apiPayload = createCPKData(requestData, paramName, 1);
-        console.log('📤 CPK API Payload:', apiPayload);
+        console.log(`📤 CPK Scatter API Payload for server ${serverId}:`, apiPayload);
 
         const scatterResponse = await apiService.getScatteredData(apiPayload);
-        console.log('📥 Scatter Response:', scatterResponse);
+        console.log(`📥 Scatter Response for server ${serverId}:`, scatterResponse);
 
         if (scatterResponse) {
           let lstVal = [];
-          let lowerLimitValue = -25;
-          let upperLimitValue = 25;
+          let lowerLimitValue = point.lowerLimit || -25;
+          let upperLimitValue = point.upperLimit || 25;
 
-          // Handle different response structures
+          // 🔧 FIXED: Enhanced response handling for different server formats
           if (scatterResponse.config && scatterResponse.lstVal !== undefined) {
             lstVal = scatterResponse.lstVal;
-            lowerLimitValue = scatterResponse.config?.lowerLimit ?? -25;
-            upperLimitValue = scatterResponse.config?.upperLimit ?? 25;
+            lowerLimitValue = scatterResponse.config?.lowerLimit ?? lowerLimitValue;
+            upperLimitValue = scatterResponse.config?.upperLimit ?? upperLimitValue;
           } else if (scatterResponse[0]?.config && scatterResponse[0]?.lstVal) {
             const { config, lstVal: responseData } = scatterResponse[0];
             lstVal = responseData || [];
-            lowerLimitValue = config?.lowerLimit ?? -25;
-            upperLimitValue = config?.upperLimit ?? 25;
+            lowerLimitValue = config?.lowerLimit ?? lowerLimitValue;
+            upperLimitValue = config?.upperLimit ?? upperLimitValue;
           } else if (scatterResponse[0]?.lowerLimit !== undefined) {
-            lowerLimitValue = scatterResponse[0].lowerLimit ?? -25;
-            upperLimitValue = scatterResponse[0].upperLimit ?? 25;
+            lowerLimitValue = scatterResponse[0].lowerLimit ?? lowerLimitValue;
+            upperLimitValue = scatterResponse[0].upperLimit ?? upperLimitValue;
             lstVal = scatterResponse.map(item => item.value || item.y || item);
           } else if (Array.isArray(scatterResponse)) {
-            lstVal = scatterResponse;
+            // Handle direct array response - different servers may return different formats
+            lstVal = scatterResponse.map(item => {
+              if (typeof item === 'object' && item !== null) {
+                return item.value || item.y || item.val || item.measurement || item.data || 0;
+              }
+              return item;
+            });
           }
 
+          // Ensure lstVal is always an array
           if (!Array.isArray(lstVal)) {
             lstVal = [lstVal];
           }
 
+          // Filter out invalid values
+          lstVal = lstVal.filter(val => val !== null && val !== undefined && !isNaN(val));
+
           if (lstVal.length > MAX_POINTS) {
-            console.warn(`Point count too large (${lstVal.length}), limiting to ${MAX_POINTS}`);
+            console.warn(`Point count too large (${lstVal.length}) for server ${serverId}, limiting to ${MAX_POINTS}`);
             lstVal = lstVal.slice(0, MAX_POINTS);
           }
 
+          console.log(`📊 Processed scatter data for server ${serverId}:`, lstVal.length, 'points');
+          console.log('📊 Sample data:', lstVal.slice(0, 5));
+
+          // Update limits and points
           setLowerLimit(lowerLimitValue);
           setUpperLimit(upperLimitValue);
           setPoints(lstVal);
         } else {
-          console.warn('⚠️ No scatter data received');
+          console.warn(`⚠️ No scatter data received for server ${serverId}`);
           setPoints([]);
         }
       } catch (error) {
-        console.error('❌ Error loading scatter data:', error);
+        console.error(`❌ Error loading scatter data for server ${serverId}:`, error);
+        setApiError(`Failed to load scatter data: ${error.message}`);
         setPoints([]);
       } finally {
         setIsLoadingScatter(false);
@@ -261,17 +404,20 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     setScatterGraphStatus(false);
     setPoints([]);
     setCPKName("");
+    setApiError(null);
   }, []);
 
   // =========================
-  // ✅ Validation Logic (AFTER ALL HOOKS)
+  // ✅ FIXED: Enhanced Validation with Better Error Messages
   // =========================
-  console.log('🎯 CPKChart received props:');
+  console.log(`🎯 CPKChart received props for server ${serverId}:`);
   console.log('  - projCode:', projCode);
   console.log('  - serverId:', serverId);
   console.log('  - startDate:', startDate);
   console.log('  - endDate:', endDate);
   console.log('  - cpkCalculationData:', cpkCalculationData.length, 'items');
+  console.log('  - dataPoints:', dataPoints.length, 'items');
+  console.log('  - apiError:', apiError);
 
   if (!serverId) {
     console.error('CPKChart: serverId is required but not provided');
@@ -283,28 +429,107 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     return <div>Error: Project Code is required</div>;
   }
 
-  if (!data || !Array.isArray(data) || data.length === 0) {
-    return <div>No CPK data available</div>;
+  // 🔧 FIXED: Enhanced error display
+  if (apiError) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '40px',
+        color: '#d32f2f',
+        backgroundColor: '#ffebee',
+        borderRadius: '8px',
+        border: '1px solid #ffcdd2'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+          CPK Data Error for Server {serverId}
+        </div>
+        <div style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
+          {apiError}
+        </div>
+        <button 
+          onClick={refreshCPKCalculation}
+          style={{
+            background: '#2196F3',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          🔄 Retry
+        </button>
+      </div>
+    );
   }
 
-  if (!cpkList || !Array.isArray(cpkList) || cpkList.length === 0) {
-    return <div>No CPK list configuration available</div>;
+  // Show loading state
+  if (isLoadingCPKData || (isCalculatingCPK && dataPoints.length === 0)) {
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '40px',
+        color: '#666'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔄</div>
+        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+          {isLoadingCPKData ? `Loading CPK Parameters for Server ${serverId}...` : `Calculating CPK Values for Server ${serverId}...`}
+        </div>
+        <div style={{ fontSize: '14px', color: '#999' }}>
+          Please wait while we process your data
+        </div>
+      </div>
+    );
   }
 
   if (dataPoints.length === 0) {
-    return <div>No CPK parameters are enabled for display</div>;
+    return (
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '40px',
+        color: '#666'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>📊</div>
+        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+          No CPK Parameters Available for Server {serverId}
+        </div>
+        <div style={{ fontSize: '14px', color: '#999' }}>
+          No CPK data found for project <strong>{projCode}</strong> in the selected date range
+        </div>
+        <button 
+          onClick={refreshCPKCalculation}
+          style={{
+            marginTop: '20px',
+            background: '#2196F3',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          🔄 Retry CPK Calculation
+        </button>
+      </div>
+    );
   }
 
   // =========================
-  // ✅ Enhanced Main Bar Options with Loading State
+  // ✅ Enhanced Main Bar Chart Options (unchanged but with server info)
   // =========================
   const optionsMain = {
     chart: {
-      type: 'bar',
-      height: 400,
+      type: 'column',
+      height: 700,
+      zoomType: 'x',
     },
     title: {
-      text: isCalculatingCPK ? '🧮 Calculating CPK Values...' : 'CPK Chart',
+      text: isCalculatingCPK ? 
+        `🧮 Calculating CPK Values for Server ${serverId}...` : 
+        `📊 CPK Analysis - Server ${serverId} - ${dataPoints.length} Parameters`,
       align: 'left',
       style: {
         fontSize: '18px',
@@ -315,7 +540,7 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     subtitle: {
       text: isCalculatingCPK 
         ? 'Please wait while CPK values are being calculated...' 
-        : '📊 Click a bar to view scatter data',
+        : '📊 Click a bar to view scatter data • Scroll to zoom horizontally',
       align: 'left',
       style: {
         fontSize: '14px',
@@ -324,48 +549,98 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     },
     xAxis: {
       categories: category,
-      title: { text: null },
-      gridLineWidth: 1,
-      lineWidth: 0,
+      title: { text: 'Parameters' },
       labels: {
+        rotation: -45,
         style: {
-          fontSize: '12px'
-        }
-      }
+          fontSize: '9px'
+        },
+        step: 1,
+        overflow: 'allow',
+        autoRotation: [-45, -90]
+      },
+      scrollbar: {
+        enabled: true,
+        height: 20,
+        showFull: false,
+        buttonArrowColor: '#666',
+        buttonBackgroundColor: '#ddd',
+        buttonBorderColor: '#ccc',
+        rifleColor: '#666',
+        trackBackgroundColor: '#f0f0f0',
+        trackBorderColor: '#ccc'
+      },
+      min: 0,
+      max: Math.min(40, category.length - 1),
+      type: 'category'
     },
     yAxis: {
       min: 0,
       title: { 
         text: 'CPK Value', 
-        align: 'high',
         style: {
           fontSize: '14px'
         }
       },
       labels: { 
-        overflow: 'justify',
         style: {
           fontSize: '12px'
         }
       },
-      gridLineWidth: 1,
-      plotLines: [{
-        color: 'red',
-        dashStyle: 'dash',
-        value: 1.67,
-        width: 2,
-        label: {
-          text: 'CPK Target (1.67)',
-          style: {
-            color: 'red'
+      plotLines: [
+        {
+          color: '#FF6B6B',
+          dashStyle: 'dash',
+          value: 1.33,
+          width: 2,
+          label: {
+            text: 'Min CPK (1.33)',
+            style: {
+              color: '#FF6B6B',
+              fontSize: '11px'
+            }
+          }
+        },
+        {
+          color: '#4ECDC4',
+          dashStyle: 'dash',
+          value: 1.67,
+          width: 2,
+          label: {
+            text: 'Target CPK (1.67)',
+            style: {
+              color: '#4ECDC4',
+              fontSize: '11px'
+            }
+          }
+        },
+        {
+          color: '#45B7D1',
+          dashStyle: 'dash',
+          value: 2.0,
+          width: 2,
+          label: {
+            text: 'Excellent CPK (2.0)',
+            style: {
+              color: '#45B7D1',
+              fontSize: '11px'
+            }
           }
         }
-      }]
+      ]
     },
     tooltip: {
       formatter: function () {
+        const cpkStatus = this.point.y >= 2.0 ? 'Excellent' : 
+                         this.point.y >= 1.67 ? 'Good' : 
+                         this.point.y >= 1.33 ? 'Acceptable' : 'Poor';
+        const statusColor = this.point.y >= 2.0 ? '#45B7D1' : 
+                           this.point.y >= 1.67 ? '#4ECDC4' : 
+                           this.point.y >= 1.33 ? '#FFA726' : '#FF6B6B';
+        
         return `<b>${this.point.name}</b><br/>
                 CPK Value: <b>${this.point.y.toFixed(3)}</b><br/>
+                Status: <span style="color: ${statusColor}"><b>${cpkStatus}</b></span><br/>
                 Count: <b>${this.point.count}</b><br/>
                 Lower Limit: ${this.point.lowerLimit}<br/>
                 Upper Limit: ${this.point.upperLimit}
@@ -378,7 +653,7 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
       shadow: true
     },
     plotOptions: {
-      bar: {
+      column: {
         point: {
           events: {
             click: handleBarClick,
@@ -389,16 +664,16 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
           enabled: true,
           format: '{point.y:.2f}',
           style: {
-            fontSize: '11px',
+            fontSize: '9px',
             fontWeight: 'bold'
           }
         },
-        groupPadding: 0.1,
-        colorByPoint: true,
-        colors: [
-          '#7CB342', '#FB8C00', '#E53935', '#8E24AA', '#00ACC1',
-          '#FFB300', '#6D4C41', '#546E7A', '#D4E157', '#FF7043'
-        ]
+        colorByPoint: false,
+        color: function() {
+          return this.y >= 2.0 ? '#45B7D1' : 
+                 this.y >= 1.67 ? '#4ECDC4' : 
+                 this.y >= 1.33 ? '#FFA726' : '#FF6B6B';
+        }
       },
     },
     legend: {
@@ -408,13 +683,18 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     series: [
       {
         name: 'CPK Values',
-        data: dataPoints,
+        data: dataPoints.map(point => ({
+          ...point,
+          color: point.y >= 2.0 ? '#45B7D1' : 
+                 point.y >= 1.67 ? '#4ECDC4' : 
+                 point.y >= 1.33 ? '#FFA726' : '#FF6B6B'
+        })),
       },
     ],
   };
 
   // =========================
-  // ✅ Enhanced Scatter Options (same as before)
+  // ✅ Enhanced Scatter Options (unchanged)
   // =========================
   const scatterOptions = {
     chart: {
@@ -425,7 +705,7 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
       boost: { enabled: true },
     },
     title: {
-      text: `📈 Scatter Plot: ${name}`,
+      text: `📈 Scatter Plot: ${name} (Server ${serverId})`,
       style: {
         fontSize: '16px',
         fontWeight: 'bold'
@@ -523,7 +803,7 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
     plotOptions: {
       scatter: {
         marker: {
-          radius: 4,
+          radius: 3,
           states: {
             hover: {
               enabled: true,
@@ -565,52 +845,116 @@ const CPKChart = ({ data, cpkList, serverId, startDate, endDate, projCode, cpkPa
   };
 
   // =========================
-  // ✅ Enhanced Final Render with CPK Controls
+  // ✅ Enhanced Final Render
   // =========================
   return (
     <div style={{ padding: "20px" }}>
-      {/* CPK Calculation Controls */}
+      {/* CPK Summary Card */}
       <div style={{ 
         marginBottom: '20px', 
-        padding: '15px', 
-        backgroundColor: '#f5f5f5', 
-        borderRadius: '8px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        padding: '20px', 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '12px',
+        border: '1px solid #e9ecef',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <div>
-          <h4 style={{ margin: 0, color: '#333' }}>🧮 CPK Analysis</h4>
-          <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
-            {cpkCalculationData.length > 0 
-              ? `${cpkCalculationData.length} parameters calculated` 
-              : 'No CPK calculations performed yet'
-            }
-          </p>
+        <div style={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '15px'
+        }}>
+          <div>
+            <h3 style={{ margin: 0, color: '#333', fontSize: '20px' }}>
+              🧮 CPK Analysis Dashboard
+            </h3>
+            <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
+              Project: <strong>{projCode}</strong> • 
+              Period: <strong>{startDate}</strong> to <strong>{endDate}</strong>
+            </p>
+          </div>
+          <button 
+            onClick={refreshCPKCalculation}
+            disabled={isCalculatingCPK}
+            style={{
+              background: isCalculatingCPK ? '#ccc' : '#2196F3',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: isCalculatingCPK ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >
+            {isCalculatingCPK ? '🔄 Calculating...' : '🔄 Recalculate CPK'}
+          </button>
         </div>
-        <button 
-          onClick={refreshCPKCalculation}
-          disabled={isCalculatingCPK}
-          style={{
-            background: isCalculatingCPK ? '#ccc' : '#2196F3',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: isCalculatingCPK ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
-          }}
-        >
-          {isCalculatingCPK ? '🔄 Calculating...' : '🔄 Recalculate CPK'}
-        </button>
+        
+        {/* CPK Statistics */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '15px',
+          marginTop: '15px'
+        }}>
+          <div style={{ 
+            padding: '15px', 
+            backgroundColor: '#e8f5e8', 
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2e7d32' }}>
+              {dataPoints.filter(p => p.y >= 1.67).length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#2e7d32' }}>Good CPK (≥1.67)</div>
+          </div>
+          <div style={{ 
+            padding: '15px', 
+            backgroundColor: '#fff3e0', 
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ef6c00' }}>
+              {dataPoints.filter(p => p.y >= 1.33 && p.y < 1.67).length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#ef6c00' }}>Acceptable CPK (1.33-1.67)</div>
+          </div>
+          <div style={{ 
+            padding: '15px', 
+            backgroundColor: '#ffebee', 
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#c62828' }}>
+              {dataPoints.filter(p => p.y < 1.33).length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#c62828' }}>Poor CPK (&lt; 1.33)</div>
+          </div>
+          <div style={{ 
+            padding: '15px', 
+            backgroundColor: '#e3f2fd', 
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1565c0' }}>
+              {dataPoints.length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#1565c0' }}>Total Parameters</div>
+          </div>
+        </div>
       </div>
 
       {/* Main CPK Chart */}
       <div style={{ 
         marginBottom: '20px',
         opacity: isCalculatingCPK ? 0.7 : 1,
-        transition: 'opacity 0.3s ease'
+        transition: 'opacity 0.3s ease',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        padding: '20px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
         <HighchartsReact highcharts={Highcharts} options={optionsMain} />
       </div>
