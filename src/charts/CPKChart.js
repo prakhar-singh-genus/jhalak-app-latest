@@ -8,7 +8,7 @@ if (typeof boost === "function") {
   boost(Highcharts);
 }
 
-const MAX_POINTS = 10000;
+const MAX_POINTS = 30000;
 
 const CPKChart = ({ serverId, startDate, endDate, projCode }) => {
   // =========================
