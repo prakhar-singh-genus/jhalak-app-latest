@@ -35,13 +35,7 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
           </Link>
         </nav>
       </div>
-      
-      <div className="header-right">
-        {/* You can add user profile or other elements here */}
-        <div className="user-info">
-          {/* Example: User avatar or notifications */}
-        </div>
-      </div>
+
     </header>
   );
 };

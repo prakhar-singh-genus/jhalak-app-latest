@@ -64,9 +64,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           >
             <span className="sidebar-icon">📊</span>
             <span className="sidebar-text">Dashboard</span>
-            {(location.pathname === '/' || location.pathname === '/dashboard') && 
-              <span className="new-badge">NEW</span>
-            }
           </Link>
           
           <Link 
