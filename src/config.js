@@ -1,9 +1,9 @@
 // config.js
 //  export const baseUrl = "http://10.133.100.28:5001/api";
 
-//  export const baseUrl = "https://localhost:5001/api";
+export const baseUrl = "https://localhost:5001/api";
 
-export const baseUrl = "https://apps.genus.in/JhalakApi/api";
+// export const baseUrl = "https://apps.genus.in/JhalakApi/api";
 
 export const config = {
     baseUrl: "http://10.133.100.28:5001/api",
