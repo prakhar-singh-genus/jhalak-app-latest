@@ -33,6 +33,12 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
           >
             Configuration
           </Link>
+          <Link 
+            to="/cumulative-fpy" 
+            className={`nav-link ${location.pathname === '/cumulative-fpy' ? 'active' : ''}`}
+          >
+            Cumulative FPY
+          </Link>
         </nav>
       </div>
 

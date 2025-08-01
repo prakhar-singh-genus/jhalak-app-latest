@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
+
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
 
@@ -80,11 +81,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <span className="sidebar-text">Configuration</span>
           </Link>
           
-          {/* Add more navigation items here */}
-          {/* 
           <Link 
-            to="/analytics" 
-            className={`sidebar-link ${location.pathname === '/analytics' ? 'active' : ''}`}
+            to="/cumulative-fpy" 
+            className={`sidebar-link ${location.pathname === '/cumulative-fpy' ? 'active' : ''}`}
             onClick={() => {
               if (window.innerWidth <= 768) {
                 toggleSidebar();
@@ -92,9 +91,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             }}
           >
             <span className="sidebar-icon">📈</span>
-            <span className="sidebar-text">Analytics</span>
+            <span className="sidebar-text">Cumulative FPY</span>
           </Link>
-          */}
         </nav>
         
         {/* Optional: Add footer section */}

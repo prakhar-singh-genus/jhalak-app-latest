@@ -21,8 +21,8 @@ const ServerInfo = [
   { id: 1, name: 'Genus RND Server'},
   { id: 2, name: 'RCP Jaipur Server'},
   { id: 3, name: 'HDR 1101 Server'},
-  { id: 4, name: 'HDR 1100 Server'},
-  { id: 5, name: 'HDR 1201 Server'},
+  { id: 4, name: 'HDR 3000 Server'},
+  { id: 5, name: 'HDR 1100 Server'},
   { id: 6, name: 'Guhawati Server'},
 ];
 

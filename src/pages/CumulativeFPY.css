@@ -1,0 +1,122 @@
+
+.combined-fpy {
+  min-height: 100vh;
+  background: #f7f7fa;
+  padding: 32px 0;
+}
+.combined-fpy-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 32px 32px 24px 32px;
+}
+.combined-fpy .search-form {
+  margin-bottom: 32px;
+}
+.combined-fpy .form-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #2a2a2a;
+}
+.combined-fpy .form-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.combined-fpy .form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.combined-fpy .form-group label {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.combined-fpy .select-input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+.combined-fpy .form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+.combined-fpy .find-btn, .combined-fpy .reset-btn {
+  padding: 8px 24px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.combined-fpy .find-btn {
+  background: #007bff;
+  color: #fff;
+}
+.combined-fpy .find-btn.loading {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+.combined-fpy .reset-btn {
+  background: #f1f1f1;
+  color: #333;
+}
+.combined-fpy .reset-btn:disabled {
+  background: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.combined-fpy .results-area {
+  margin-top: 32px;
+}
+.combined-fpy .results-header {
+  margin-bottom: 16px;
+}
+.combined-fpy .results-info {
+  display: flex;
+  gap: 24px;
+  font-size: 1rem;
+  color: #555;
+  margin-top: 8px;
+}
+.combined-fpy .info-tag strong {
+  color: #007bff;
+}
+.combined-fpy .loading-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0;
+}
+.combined-fpy .loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.combined-fpy .no-data-message {
+  text-align: center;
+  color: #888;
+  margin: 32px 0;
+}
+.combined-fpy .charts-container {
+  margin-top: 24px;
+}
+.combined-fpy .chart-block {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}

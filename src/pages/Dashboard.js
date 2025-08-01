@@ -48,12 +48,12 @@ const Dashboard = () => {
   //   { id: 6, name: 'Guhawati - 10.161.1.22', serverIP: '10.161.1.22' },
   // ];
 
-   const ServerInfo = [
+const ServerInfo = [
     { id: 1, name: 'Genus RND', serverIP: '192.10.10.4' },
     { id: 2, name: 'RCP Jaipur', serverIP: '10.141.61.40' },
-    { id: 3, name: 'HDR 1101', serverIP: '10.133.100.21' },//1101
-    { id: 4, name: 'HDR 1100', serverIP: '10.134.1.21' },//3000
-    { id: 5, name: 'HDR 1201', serverIP: '10.133.1.22' },//1100
+    { id: 3, name: 'HDR 1101', serverIP: '10.133.100.21' },
+    { id: 4, name: 'HDR 3000', serverIP: '10.134.1.21' },
+    { id: 5, name: 'HDR 1100', serverIP: '10.133.1.22' },
     { id: 6, name: 'Guhawati', serverIP: '10.161.1.22' },
   ];
 

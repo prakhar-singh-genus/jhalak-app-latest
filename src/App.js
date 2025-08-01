@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
+import CumulativeFPY from './pages/CumulativeFPY';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import './App.css';
 import Configuration from './pages/Configuration';
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/configuration" element={<Configuration />} />
+                <Route path="/cumulative-fpy" element={<CumulativeFPY />} />
               </Routes>
             </main>
           </div>
