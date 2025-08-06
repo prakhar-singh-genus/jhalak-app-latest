@@ -39,6 +39,12 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
           >
             Cumulative FPY
           </Link>
+          <Link 
+            to="/cumulative-pareto" 
+            className={`nav-link ${location.pathname === '/cumulative-pareto' ? 'active' : ''}`}
+          >
+            Cumulative Pareto
+          </Link>
         </nav>
       </div>
 

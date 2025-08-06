@@ -7,6 +7,7 @@ import CumulativeFPY from './pages/CumulativeFPY';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import './App.css';
 import Configuration from './pages/Configuration';
+import CumulativePareto from './pages/CumulativePareto';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true); // Default to open on desktop
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/configuration" element={<Configuration />} />
                 <Route path="/cumulative-fpy" element={<CumulativeFPY />} />
+                <Route path="/cumulative-pareto" element={<CumulativePareto />} />
               </Routes>
             </main>
           </div>
